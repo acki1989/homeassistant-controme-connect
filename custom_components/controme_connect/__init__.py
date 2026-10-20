@@ -1,4 +1,4 @@
-"""The Controme integration."""
+"""Die Controme-Integration."""
 import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,12 +15,12 @@ PLATFORMS = [Platform.SENSOR, Platform.CLIMATE, Platform.BINARY_SENSOR]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the Controme component."""
+    """Richtet die Controme-Komponente ein."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Controme from a config entry."""
+    """Richtet Controme anhand eines Konfigurationseintrags ein."""
     hass.data.setdefault(DOMAIN, {})
     coordinator = ContromeDataUpdateCoordinator(
         hass,
@@ -32,8 +32,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await coordinator.async_config_entry_first_refresh()
 
-    # Register the main Controme hub device. The room devices are attached to
-    # it, so its device id is needed for them.
+    # Hub-Gerät der Anlage registrieren. Die Raum-Geräte sind ihm
+    # zugeordnet, dafür wird dessen Geräte-ID benötigt.
     device_registry = dr.async_get(hass)
     hub_device = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
@@ -53,10 +53,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Lädt einen Konfigurationseintrag herunter."""
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
-        # Stop the coordinator, otherwise it would keep polling the API
+        # Coordinator stoppen, sonst fragt er die API weiter ab
         data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
         if data:
             await data["coordinator"].async_shutdown()

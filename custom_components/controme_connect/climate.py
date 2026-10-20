@@ -1,4 +1,4 @@
-"""Support for Controme climate devices."""
+"""Unterstützung der Heizungs-Entities von Controme."""
 import logging
 from typing import Any
 from datetime import timedelta
@@ -28,7 +28,7 @@ REQUEST_TIMEOUT = ClientTimeout(total=10)  # 10 Sekunden Timeout
 ATTR_HUMIDITY = "current_humidity"
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Set up the Controme climate platform."""
+    """Richtet die Plattform der Heizungs-Entities ein."""
     climate_devices = []
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     data = coordinator.data
@@ -36,7 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     room_icons = data.get("rooms", {})
     hub_device_id = hass.data[DOMAIN][entry.entry_id].get("hub_device_id")
 
-    # Process all floors and rooms
+    # Alle Etagen und Räume verarbeiten
     for floor in data.get("floors", []):
         floor_id = floor.get("id")
         floor_name = floor.get("etagenname", f"Floor {floor_id}")
@@ -73,14 +73,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(climate_devices)
 
 class ContromeClimate(CoordinatorEntity, ClimateEntity):
-    """Representation of a Controme Climate device."""
+    """Abbildung einer Controme-Heizung."""
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_hvac_modes = [HVACMode.HEAT]
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
 
     def __init__(self, coordinator, config_entry, room_data, device_info, controme_icon=""):
-        """Initialize the climate device."""
+        """Initialisiert die Heizung."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._base_url = config_entry.data[CONF_API_URL].rstrip('/')
@@ -99,29 +99,29 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
         self.entity_id = f"climate.controme_connect_{room_slug(self._attr_name)}"
         self._update_from_data(room_data)
 
-        # Room icon of the Controme web interface
+        # Raum-Icon der Controme-Weboberfläche
         self._controme_icon = controme_icon
         self._attr_icon = room_icon(controme_icon)
 
-        # Set supported features
+        # Unterstützte Funktionen setzen
         self._attr_supported_features = (
             ClimateEntityFeature.TARGET_TEMPERATURE
         )
 
-        # Set temperature settings
+        # Temperatur-Einstellungen setzen
         self._attr_target_temperature_step = 0.5
         self._attr_min_temp = 5
         self._attr_max_temp = 30
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
 
-        # Set HVAC modes
+        # Betriebsarten setzen
         self._attr_hvac_modes = [
             HVACMode.HEAT,
             HVACMode.OFF,
         ]
 
     def _update_from_data(self, data):
-        """Update attrs from data."""
+        """Aktualisiert die Attribute aus den Daten."""
         self._attr_current_temperature = data.get("temperatur")
         self._attr_target_temperature = data.get("solltemperatur")
         self._attr_hvac_mode = HVACMode.HEAT if data.get("betriebsart") == "Heating" else None
@@ -135,7 +135,7 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         for floor in self.coordinator.data.get("floors", []):
             if floor.get("id") == self._floor_id:
                 for room in floor.get("raeume", []):
@@ -146,12 +146,12 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
 
     @property
     def device_info(self):
-        """Return device info."""
+        """Gibt die Geräteinformationen zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the optional state attributes."""
+        """Gibt die optionalen Zustandsattribute zurück."""
         return {
             ATTR_HUMIDITY: self._attr_current_humidity,
             "is_temporary_mode": self._temporary_mode,
@@ -162,13 +162,13 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
         }
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
+        """Setzt die neue Zieltemperatur."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
             return
 
         session = async_get_clientsession(self.hass)
-        # Remove trailing slash from base_url if present
+        # Abschließenden Slash der Basis-URL entfernen, falls vorhanden
         base_url = self._base_url.rstrip('/')
         endpoint = f"{base_url}/set/json/v1/{self._house_id}/soll/{self._room_id}/"
 
@@ -179,9 +179,9 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
         }
 
         try:
-            # Log request details for debugging
+            # Anfragedetails zur Fehlersuche protokollieren
             _LOGGER.debug(
-                "Setting temperature: URL=%s, Data=%s",
+                "Zieltemperatur wird gesetzt: URL=%s, Daten=%s",
                 endpoint,
                 {**data, "password": "***"},
             )
@@ -198,26 +198,26 @@ class ContromeClimate(CoordinatorEntity, ClimateEntity):
                 if response.status != 200:
                     if response.status == 403:
                         _LOGGER.error(
-                            "Authentication failed when setting temperature. "
-                            "Check your credentials."
+                            "Die Anmeldung ist beim Setzen der Temperatur fehlgeschlagen. "
+                            "Bitte die Zugangsdaten prüfen."
                         )
-                        _LOGGER.debug("Auth failed: URL=%s, User=%s, Response=%s",
+                        _LOGGER.debug("Anmeldung fehlgeschlagen: URL=%s, Benutzer=%s, Antwort=%s",
                                     endpoint, self._user, response_text)
                     else:
-                        _LOGGER.error("Error setting temperature: status=%s, response=%s",
+                        _LOGGER.error("Fehler beim Setzen der Temperatur: Status=%s, Antwort=%s",
                                     response.status, response_text)
                     return
                 else:
-                    _LOGGER.debug("Successfully set temperature: %s", response_text)
+                    _LOGGER.debug("Zieltemperatur erfolgreich gesetzt: %s", response_text)
 
-                    # Set local value immediately for responsive UI
+                    # Lokalen Wert sofort setzen, damit die Oberfläche reagiert
                     self._attr_target_temperature = temperature
                     self.async_write_ha_state()
 
-                    # Request an immediate data refresh to update all entities
-                    _LOGGER.debug("Requesting immediate data refresh after temperature change")
+                    # Sofortige Aktualisierung der Daten anfordern, damit alle Entities aktuell sind
+                    _LOGGER.debug("Aktualisierung der Daten wird nach der Temperaturänderung angefordert")
                     await self.coordinator.async_refresh()
 
         except Exception as ex:
-            _LOGGER.exception("Exception during setting temperature: %s", ex)
+            _LOGGER.exception("Ausnahme beim Setzen der Temperatur: %s", ex)
             return

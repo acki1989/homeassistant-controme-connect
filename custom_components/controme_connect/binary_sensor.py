@@ -1,4 +1,4 @@
-"""Support for Controme binary sensors."""
+"""Unterstützung der binären Sensoren von Controme."""
 import logging
 
 from homeassistant.components.binary_sensor import (
@@ -29,14 +29,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Set up the Controme binary sensor platform."""
+    """Richtet die Plattform der binären Sensoren ein."""
     entities = []
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     house_id = entry.data[CONF_HAUS_ID]
 
-    # The firmware of the mini server is not bound to a room
-    # The name of the hub device is set in __init__.py, it must not be
-    # overwritten here
+    # Die Firmware des Mini-Servers gehört zu keinem Raum
+    # Der Name des Hub-Geräts wird in __init__.py gesetzt und darf hier
+    # nicht überschrieben werden
     hub_device_info = DeviceInfo(
         identifiers={(DOMAIN, house_id)},
     )
@@ -81,7 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 
 class ContromeFirmwareUpdateSensor(CoordinatorEntity, BinarySensorEntity):
-    """Representation of the firmware update state of the mini server."""
+    """Abbildung des Firmware-Update-Status des Mini-Servers."""
 
     _attr_has_entity_name = True
     _attr_device_class = BinarySensorDeviceClass.UPDATE
@@ -89,7 +89,7 @@ class ContromeFirmwareUpdateSensor(CoordinatorEntity, BinarySensorEntity):
     _attr_icon = "mdi:cloud-download-outline"
 
     def __init__(self, coordinator, config_entry, device_info):
-        """Initialize the binary sensor."""
+        """Initialisiert den binären Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -103,12 +103,12 @@ class ContromeFirmwareUpdateSensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         info = self.coordinator.data.get("info") or {}
         update = self.coordinator.data.get("update") or {}
         section = update.get("update_section") or {}
@@ -123,19 +123,19 @@ class ContromeFirmwareUpdateSensor(CoordinatorEntity, BinarySensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the update state."""
+        """Aktualisiert den Update-Status."""
         info = self.coordinator.data.get("info") or {}
         update = self.coordinator.data.get("update") or {}
         self._attr_is_on = firmware_update_available(info, update)
 
 
 class ContromeTransmissionProblemSensor(CoordinatorEntity, BinarySensorEntity):
-    """Representation of the transmission state of the sensors of a room."""
+    """Abbildung des Übertragungsstatus der Sensoren eines Raums."""
 
     _attr_has_entity_name = True
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
@@ -143,7 +143,7 @@ class ContromeTransmissionProblemSensor(CoordinatorEntity, BinarySensorEntity):
     _attr_icon = "mdi:cloud-alert"
 
     def __init__(self, coordinator, config_entry, room_data, device_info):
-        """Initialize the binary sensor."""
+        """Initialisiert den binären Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -169,12 +169,12 @@ class ContromeTransmissionProblemSensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         return {
             "room_id": self._room_id,
             "floor_id": self._floor_id,
@@ -189,16 +189,17 @@ class ContromeTransmissionProblemSensor(CoordinatorEntity, BinarySensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the problem state from the last transmissions.
+        """Aktualisiert den Problemstatus aus den letzten Übertragungen.
 
-        Every sensor is checked with the timeout of its type. The multi
-        sensors (for example the room thermostats with a solar cell) sleep
-        between the transmissions, they get a much longer timeout.
+            Jeder Sensor wird mit dem Zeitlimit seines Typs geprüft. Die
+            Multi-Sensoren (zum Beispiel die Raumthermostate mit Solarzelle)
+            schlafen zwischen den Übertragungen und erhalten ein deutlich
+            längeres Zeitlimit.
         """
         room_data = find_room(
             self.coordinator, self._floor_id, self._room_id, self._room_data

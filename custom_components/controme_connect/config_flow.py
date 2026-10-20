@@ -1,4 +1,4 @@
-"""Config flow for Controme integration."""
+"""Konfigurationsablauf der Controme-Integration."""
 import logging
 from typing import Any, Optional
 
@@ -15,12 +15,12 @@ from .helpers import scan_network
 
 _LOGGER = logging.getLogger(__name__)
 
-# Timeout for the connection test to the API
+# Zeitlimit für den Verbindungstest zur API
 CONNECT_TIMEOUT = 10
 
 
 def normalize_url(url: str) -> str:
-    """Return the API url with a scheme and without a trailing slash."""
+    """Gibt die API-URL mit Schema und ohne abschließenden Slash zurück."""
     url = (url or "").strip()
     if not url.startswith(("http://", "https://")):
         url = f"http://{url}"
@@ -28,21 +28,21 @@ def normalize_url(url: str) -> str:
 
 
 class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Controme."""
+    """Verarbeitet einen Konfigurationsablauf für Controme."""
 
     VERSION = 1
 
     def __init__(self):
-        """Initialize the config flow."""
+        """Initialisiert den Konfigurationsablauf."""
         self._discovered_systems = []
         self._user_input = {}
         self._scan_already_run = False
         self._houses: list[str] = []
 
     async def async_step_user(self, user_input: Optional[dict[str, Any]] = None) -> FlowResult:
-        """Handle the initial step."""
+        """Verarbeitet den ersten Schritt."""
         if user_input is None:
-            # Reset scan flag when starting a new flow
+            # Suchmerkmal beim Start eines neuen Ablaufs zurücksetzen
             self._scan_already_run = False
             return self.async_show_form(
                 step_id="user",
@@ -68,9 +68,9 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_auto_discovery(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Handle the auto discovery step."""
+        """Verarbeitet den Schritt der automatischen Ermittlung."""
         if user_input is None:
-            # Reset scan flag when starting a new flow
+            # Suchmerkmal beim Start eines neuen Ablaufs zurücksetzen
             if not self._scan_already_run:
                 self._scan_already_run = True
                 await self._async_scan_systems()
@@ -79,17 +79,17 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user(user_input)
 
     async def _async_scan_systems(self) -> None:
-        """Scan the network for Controme systems."""
+        """Durchsucht das Netzwerk nach Controme-Systemen."""
         try:
-            _LOGGER.info("Scanning network for Controme systems...")
+            _LOGGER.info("Das Netzwerk wird nach Controme-Systemen durchsucht ...")
             self._discovered_systems = await scan_network()
-            _LOGGER.info("Network scan complete. Found %d systems", len(self._discovered_systems))
+            _LOGGER.info("Netzwerksuche abgeschlossen. %d Systeme gefunden", len(self._discovered_systems))
         except Exception as err:  # pylint: disable=broad-except
-            _LOGGER.error("Error scanning network: %s", err)
+            _LOGGER.error("Fehler bei der Netzwerksuche: %s", err)
             self._discovered_systems = []
 
     def _show_form_after_scan(self) -> FlowResult:
-        """Show the form after the network scan."""
+        """Zeigt das Formular nach der Netzwerksuche."""
         if self._discovered_systems:
             if len(self._discovered_systems) == 1:
                 system = self._discovered_systems[0]
@@ -121,7 +121,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             )
 
-        _LOGGER.warning("No Controme systems found during scan. Falling back to manual entry.")
+        _LOGGER.warning("Bei der Suche wurden keine Controme-Systeme gefunden. Es folgt die manuelle Eingabe.")
         return self.async_show_form(
             step_id="manual_entry",
             data_schema=vol.Schema(
@@ -137,7 +137,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_credentials(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Enter the access data and check them."""
+        """Lässt die Zugangsdaten eingeben und prüft sie."""
         errors = {}
 
         if user_input is not None and self._discovered_systems:
@@ -170,7 +170,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_manual_entry(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Handle the manual entry step."""
+        """Verarbeitet den Schritt der manuellen Eingabe."""
         errors = {}
 
         if user_input is not None:
@@ -202,7 +202,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_select_system(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Handle the system selection step."""
+        """Verarbeitet den Schritt der Systemauswahl."""
         if user_input is not None:
             self._user_input = {
                 CONF_API_URL: normalize_url(user_input[CONF_API_URL]),
@@ -236,15 +236,15 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user(user_input)
 
     async def _async_check_access_data(self) -> Optional[str]:
-        """Check the API and the access data.
+        """Prüft die API und die Zugangsdaten.
 
-        Returns an error key or None if everything is fine. The access data are
-        only checked by the login to the web interface, the data endpoints of
-        the API answer every request.
+            Gibt einen Fehlschlüssel zurück oder None, wenn alles stimmt. Die
+            Zugangsdaten werden nur beim Login an der Weboberfläche geprüft,
+            die Daten-Endpunkte der API antworten auf jede Anfrage.
         """
         base_url = normalize_url(self._user_input[CONF_API_URL])
 
-        # The API has to answer
+        # Die API muss antworten
         try:
             url = f"{base_url}/get/json/v1/1/rooms/"
             async with aiohttp.ClientSession(
@@ -254,26 +254,26 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     if response.status != 200:
                         return "cannot_connect"
         except Exception as err:  # pylint: disable=broad-except
-            _LOGGER.error("Controme API is not reachable: %s", err)
+            _LOGGER.error("Die Controme-API ist nicht erreichbar: %s", err)
             return "cannot_connect"
 
-        # The access data are only checked by the login to the web interface
+        # Die Zugangsdaten werden nur beim Login an der Weboberfläche geprüft
         logged_in, status = await async_check_credentials(
             base_url, self._user_input[CONF_USER], self._user_input[CONF_PASSWORD]
         )
         if not logged_in:
-            _LOGGER.warning("Controme login failed: %s", status)
+            _LOGGER.warning("Anmeldung an der Controme-Weboberfläche fehlgeschlagen: %s", status)
             return "invalid_auth"
         return None
 
     async def _async_select_house(self) -> FlowResult:
-        """Determine the houses and let the user choose one."""
+        """Ermittelt die Häuser und lässt den Nutzer eines auswählen."""
         self._houses = await async_detect_houses(
             self._user_input[CONF_API_URL],
             self._user_input[CONF_USER],
             self._user_input[CONF_PASSWORD],
         )
-        _LOGGER.info("Controme houses found: %s", self._houses)
+        _LOGGER.info("Gefundene Controme-Häuser: %s", self._houses)
 
         if len(self._houses) == 1:
             self._user_input[CONF_HAUS_ID] = self._houses[0]
@@ -283,7 +283,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_select_house(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Let the user choose the house."""
+        """Lässt den Nutzer das Haus auswählen."""
         if user_input is not None:
             self._user_input[CONF_HAUS_ID] = user_input[CONF_HAUS_ID]
             return self._async_create_entry()
@@ -303,7 +303,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="select_house", data_schema=data_schema, errors={})
 
     def _async_create_entry(self) -> FlowResult:
-        """Create the config entry."""
+        """Erstellt den Konfigurationseintrag."""
         return self.async_create_entry(
             title="Controme Connect",
             data={
@@ -317,7 +317,7 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure(
         self, user_input: Optional[dict[str, Any]] = None
     ) -> FlowResult:
-        """Allow changing the settings of the integration."""
+        """Erlaubt das Ändern der Einstellungen der Integration."""
         entry = self._get_reconfigure_entry()
         errors = {}
 
@@ -338,8 +338,8 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if error is None:
                 old_house = entry.data.get(CONF_HAUS_ID)
                 if data[CONF_HAUS_ID] != old_house:
-                    # Die bisherigen Entities gehoeren zur alten Haus-ID und
-                    # wuerden ohne Bereinigung als Leichen zurueckbleiben
+                    # Die bisherigen Entities gehören zur alten Haus-ID und
+                    # würden ohne Bereinigung als Leichen zurückbleiben
                     self._async_remove_old_entities(entry)
                 return self.async_update_reload_and_abort(entry, data=data)
             errors["base"] = error
@@ -367,14 +367,14 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @callback
     def _async_remove_old_entities(self, entry: config_entries.ConfigEntry) -> None:
-        """Remove the entities of the integration from the registry."""
+        """Entfernt die Entities der Integration aus dem Registry."""
         registry = er.async_get(self.hass)
         for reg_entry in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
-            _LOGGER.info("Removing entity %s of the previous house", reg_entry.entity_id)
+            _LOGGER.info("Entity %s des vorherigen Hauses wird entfernt", reg_entry.entity_id)
             registry.async_remove(reg_entry.entity_id)
 
-    # Tell Home Assistant how to handle the progress step
+    # Home Assistant mitteilen, wie der Fortschrittsschritt zu behandeln ist
     @staticmethod
     def async_get_progress_steps() -> list[str]:
-        """Return the progress steps of the flow."""
+        """Gibt die Fortschrittsschritte des Ablaufs zurück."""
         return ["auto_discovery"]

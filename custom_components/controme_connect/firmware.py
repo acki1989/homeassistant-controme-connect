@@ -1,4 +1,4 @@
-"""Firmware update helpers for the Controme integration."""
+"""Hilfsfunktionen für Firmware-Updates der Controme-Integration."""
 import asyncio
 import json
 import logging
@@ -14,40 +14,40 @@ _LOGGER = logging.getLogger(__name__)
 
 LOGIN_PATH = "/accounts/m_login/"
 
-# Tokens of the login form
+# Token des Anmeldeformulars
 CSRF_PATTERN = re.compile(r"name='csrfmiddlewaretoken'\s+value='([^']+)'")
 
-# Title of a page
+# Titel einer Seite
 TITLE_PATTERN = re.compile(r"<title>([^<]*)</title>", re.IGNORECASE)
 
-# Markers of a page that does not exist
+# Merkmale einer Seite, die es nicht gibt
 ERROR_MARKERS = (
     "Seite konnte nicht gefunden werden",
     "Smart-Heat-OS - Fehler",
 )
 
-# Endpoints of the web interface that deliver the available versions. The
-# stable version is the relevant one, the lab version is only a beta.
+# Endpunkte der Weboberfläche, die die verfügbaren Versionen liefern. Die
+# stabile Version ist die maßgebliche, die Lab-Version ist nur eine Beta.
 STABLE_VERSION_PATH = "/m_setup/{house_id}/hardware/setup_rpi/?vertarget=stable_v2&ms=2"
 LAB_VERSION_PATH = "/m_setup/{house_id}/hardware/setup_rpi/?vertarget=lab_v2&ms=2"
 
-# The web interface asks the server with this request whether a newer
-# version is available: a successful answer means "update available", an
-# error means that the installed version is the newest one.
+# Mit dieser Anfrage fragt die Weboberfläche den Server, ob eine neuere
+# Version verfügbar ist: eine erfolgreiche Antwort bedeutet "Update verfügbar",
+# ein Fehler bedeutet, dass die installierte Version die neueste ist.
 UPDATE_AVAILABLE_PATH = "/m_setup/{house_id}/hardware/setup_rpi/?verdate=2"
 
-# Page of the mini server with the software update section
+# Seite des Mini-Servers mit dem Abschnitt zur Softwareaktualisierung
 MINISERVER_PATH = "/m_setup/{house_id}/hardware/setup_rpi/?create=2"
 
-# System check of the web interface as JSON
+# Systemcheck der Weboberfläche als JSON
 OVERVIEW_PATH = "/m_setup/{house_id}/hardware/?overview=1"
 
-# Controme names its versions with a date
+# Controme bezeichnet seine Versionen mit einem Datum
 VERSION_PATTERN = re.compile(
     r"\b(\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}:\d{2}))?\b"
 )
 
-# The update section of the mini server page
+# Abschnitt zur Aktualisierung auf der Mini-Server-Seite
 UPDATE_SECTION_PATTERNS = {
     "installed_branch": re.compile(
         r"Installierte Softwareversion:?\s*([^<\n]{0,40})", re.IGNORECASE
@@ -68,10 +68,11 @@ REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 
 def parse_version(value: str) -> datetime | None:
-    """Parse a Controme version into a comparable date.
+    """Wandelt eine Controme-Version in ein vergleichbares Datum um.
 
-    The mini server reports the installed build in ISO format, the web
-    interface uses the German date format for the available version.
+        Der Mini-Server meldet den installierten Build im ISO-Format, die
+        Weboberfläche verwendet für die verfügbare Version das deutsche
+        Datumsformat.
     """
     if not value:
         return None
@@ -90,7 +91,7 @@ def parse_version(value: str) -> datetime | None:
 
 
 def _flatten(data: Any) -> list[str]:
-    """Return all string values of a JSON document."""
+    """Gibt alle Textwerte eines JSON-Dokuments zurück."""
     values: list[str] = []
     if isinstance(data, dict):
         for value in data.values():
@@ -104,7 +105,7 @@ def _flatten(data: Any) -> list[str]:
 
 
 def extract_short_version(text: str) -> str | None:
-    """Return the version of a short answer of the web interface."""
+    """Gibt die Version aus der kurzen Antwort der Weboberfläche zurück."""
     text = (text or "").strip()
     if text.startswith("{") or text.startswith("["):
         try:
@@ -112,7 +113,7 @@ def extract_short_version(text: str) -> str | None:
         except ValueError:
             data = None
         if data is not None:
-            # The stable version is the relevant one
+            # Die stabile Version ist die maßgebliche
             if isinstance(data, dict):
                 for key, value in data.items():
                     if "stable" in str(key).lower() and not "lab" in str(key).lower():
@@ -132,7 +133,7 @@ def extract_short_version(text: str) -> str | None:
 
 
 def parse_update_section(html: str) -> dict[str, str]:
-    """Extract the software update section of the mini server page."""
+    """Extrahiert den Abschnitt zur Softwareaktualisierung der Mini-Server-Seite."""
     section: dict[str, str] = {}
     for key, pattern in UPDATE_SECTION_PATTERNS.items():
         match = pattern.search(html)
@@ -142,7 +143,7 @@ def parse_update_section(html: str) -> dict[str, str]:
 
 
 def parse_overview(data: Any) -> list[dict[str, Any]]:
-    """Convert the system check of the web interface into a readable list."""
+    """Wandelt den Systemcheck der Weboberfläche in eine lesbare Liste um."""
     overview: list[dict[str, Any]] = []
     if not isinstance(data, list):
         return overview
@@ -165,18 +166,18 @@ def parse_overview(data: Any) -> list[dict[str, Any]]:
 
 
 async def _async_login(session, base_url: str, user: str, password: str) -> tuple[bool, str]:
-    """Log in to the Controme web interface."""
+    """Meldet sich an der Controme-Weboberfläche an."""
     login_url = f"{base_url}{LOGIN_PATH}"
     try:
         async with session.get(login_url) as response:
             html = await response.text()
     except aiohttp.ClientError as err:
-        _LOGGER.debug("Controme login page not reachable: %s", err)
+        _LOGGER.debug("Anmeldeseite von Controme nicht erreichbar: %s", err)
         return False, f"Anmeldeseite nicht erreichbar: {err}"
 
     match = CSRF_PATTERN.search(html)
     if not match:
-        _LOGGER.debug("No login token found on the Controme login page")
+        _LOGGER.debug("Auf der Controme-Anmeldeseite wurde kein Login-Token gefunden")
         return False, "Kein Anmelde-Token auf der Anmeldeseite gefunden"
 
     data = {
@@ -198,15 +199,15 @@ async def _async_login(session, base_url: str, user: str, password: str) -> tupl
                 return False, "Benutzername oder Passwort ungültig"
             return False, f"Anmeldung fehlgeschlagen (HTTP {response.status})"
     except aiohttp.ClientError as err:
-        _LOGGER.debug("Controme login failed: %s", err)
+        _LOGGER.debug("Anmeldung an der Controme-Weboberfläche fehlgeschlagen: %s", err)
         return False, f"Anmeldung fehlgeschlagen: {err}"
 
 
 async def _async_fetch_page(session, url: str) -> tuple[str | None, str]:
-    """Fetch a page of the web interface.
+    """Ruft eine Seite der Weboberfläche ab.
 
-    Returns the content and a short description of the response. The content
-    is None if the page does not exist.
+        Gibt den Inhalt und eine kurze Beschreibung der Antwort zurück. Der
+        Inhalt ist None, wenn es die Seite nicht gibt.
     """
     try:
         async with session.get(url) as response:
@@ -215,7 +216,7 @@ async def _async_fetch_page(session, url: str) -> tuple[str | None, str]:
                 return None, f"HTTP {status}"
             body = await response.text()
     except aiohttp.ClientError as err:
-        _LOGGER.debug("Controme page %s not reachable: %s", url, err)
+        _LOGGER.debug("Controme-Seite %s nicht erreichbar: %s", url, err)
         return None, f"Fehler: {err}"
 
     if any(marker in body for marker in ERROR_MARKERS):
@@ -225,12 +226,13 @@ async def _async_fetch_page(session, url: str) -> tuple[str | None, str]:
 
 
 async def _async_has_update(session, url: str) -> tuple[bool | None, str]:
-    """Ask the mini server whether a newer version is available.
+    """Fragt den Mini-Server, ob eine neuere Version verfügbar ist.
 
-    The web interface uses the same request: a successful answer means that
-    an update is offered, an error means that the installed version is the
-    newest one. The error page of the web interface is answered with status
-    200, so the content has to be checked as well.
+        Die Weboberfläche nutzt dieselbe Anfrage: eine erfolgreiche Antwort
+        bedeutet, dass ein Update angeboten wird, ein Fehler bedeutet, dass
+        die installierte Version die neueste ist. Die Fehlerseite der
+        Weboberfläche wird mit Status 200 beantwortet, deshalb muss zusätzlich
+        der Inhalt geprüft werden.
     """
     try:
         async with session.get(url) as response:
@@ -244,18 +246,18 @@ async def _async_has_update(session, url: str) -> tuple[bool | None, str]:
                 return None, "HTTP 200 (leere Antwort)"
             return True, f"HTTP 200 ({body.strip()[:60]})"
     except aiohttp.ClientError as err:
-        _LOGGER.debug("Controme update query failed: %s", err)
+        _LOGGER.debug("Abfrage des Controme-Updates fehlgeschlagen: %s", err)
         return None, f"Fehler: {err}"
 
 
 async def async_check_credentials(
     base_url: str, user: str, password: str
 ) -> tuple[bool, str]:
-    """Check the access data with a login to the web interface.
+    """Prüft die Zugangsdaten mit einem Login an der Weboberfläche.
 
-    The data endpoints of the API answer every request, also with a wrong
-    password. Only the web interface checks the access data, so it is used to
-    validate them.
+        Die Daten-Endpunkte der API antworten auf jede Anfrage, auch mit
+        einem falschen Passwort. Nur die Weboberfläche prüft die Zugangsdaten,
+        deshalb wird sie zur Validierung verwendet.
     """
     jar = aiohttp.CookieJar(unsafe=True)
     try:
@@ -270,12 +272,12 @@ async def async_check_credentials(
 async def async_detect_houses(
     base_url: str, user: str = "", password: str = ""
 ) -> list[str]:
-    """Return the house ids the Controme system provides a web interface for.
+    """Gibt die Haus-IDs zurück, für die die Anlage eine Weboberfläche hält.
 
-    The data endpoints of the API answer for every house id, so they cannot be
-    used to tell the houses apart. The web interface however is bound to a
-    house, it only exists for the houses that are actually configured. One
-    login is enough for the query of all ids.
+        Die Daten-Endpunkte der API antworten für jede Haus-ID, sie können
+        die Häuser also nicht unterscheiden. Die Weboberfläche ist dagegen an
+        ein Haus gebunden, sie existiert nur für die tatsächlich eingerichteten
+        Häuser. Eine Anmeldung genügt für die Abfrage aller IDs.
     """
     jar = aiohttp.CookieJar(unsafe=True)
     houses: list[str] = []
@@ -287,8 +289,8 @@ async def async_detect_houses(
                 logged_in, _ = await _async_login(session, base_url, user, password)
                 if not logged_in:
                     _LOGGER.warning(
-                        "Could not log in to the Controme web interface, "
-                        "the houses cannot be determined"
+                        "Anmeldung an der Controme-Weboberfläche fehlgeschlagen, "
+                        "die Häuser können nicht ermittelt werden"
                     )
                     return []
             for house_id in range(1, HOUSE_ID_CHECK_COUNT + 1):
@@ -300,7 +302,7 @@ async def async_detect_houses(
                 if body is not None:
                     houses.append(str(house_id))
     except aiohttp.ClientError as err:
-        _LOGGER.warning("Could not determine the Controme houses: %s", err)
+        _LOGGER.warning("Die Controme-Häuser konnten nicht ermittelt werden: %s", err)
         return []
     return houses
 
@@ -308,7 +310,7 @@ async def async_detect_houses(
 async def _async_fetch_version(
     session, base_url: str, house_id: str, path: str, attempts: list[str]
 ) -> str | None:
-    """Return the version that the web interface offers for a branch."""
+    """Gibt die Version zurück, die die Weboberfläche für einen Branch anbietet."""
     url = f"{base_url}{path.format(house_id=house_id)}"
     body, info = await _async_fetch_page(session, url)
     attempts.append(f"{path.format(house_id=house_id)} -> {info}")
@@ -320,11 +322,12 @@ async def _async_fetch_version(
 async def async_fetch_latest_version(
     base_url: str, user: str, password: str, house_id: str = "1"
 ) -> dict[str, Any]:
-    """Check the Controme web interface for an available firmware version.
+    """Prüft die Controme-Weboberfläche auf eine verfügbare Firmware-Version.
 
-    The API of the mini server does not expose the update state, only the web
-    interface does. Returns a dictionary with the available version, the
-    information about the installed software and a status message.
+        Die API des Mini-Servers nennt den Update-Stand nicht, nur die
+        Weboberfläche. Gibt ein Dictionary mit der verfügbaren Version, den
+        Informationen zur installierten Software und einer Statusmeldung
+        zurück.
     """
     attempts: list[str] = []
     result: dict[str, Any] = {
@@ -338,7 +341,7 @@ async def async_fetch_latest_version(
         "status": "nicht geprüft",
     }
 
-    # Cookies of an IP address are only accepted with an unsafe cookie jar
+    # Cookies einer IP-Adresse werden nur mit einem unsicheren Cookie-Speicher akzeptiert
     jar = aiohttp.CookieJar(unsafe=True)
     async with aiohttp.ClientSession(cookie_jar=jar, timeout=REQUEST_TIMEOUT) as session:
         logged_in, login_status = await _async_login(session, base_url, user, password)
@@ -346,9 +349,9 @@ async def async_fetch_latest_version(
             result["status"] = login_status
             return result
 
-        # The available version is delivered by the mini server page. The
-        # server sometimes needs a second attempt, for example directly
-        # after the login.
+        # Die verfügbare Version liefert die Mini-Server-Seite. Der
+        # Server braucht manchmal einen zweiten Versuch, zum Beispiel direkt
+        # nach der Anmeldung.
         stable = await _async_fetch_version(
             session, base_url, house_id, STABLE_VERSION_PATH, attempts
         )
@@ -362,18 +365,18 @@ async def async_fetch_latest_version(
             result["page"] = STABLE_VERSION_PATH.format(house_id=house_id)
             result["status"] = f"Verfügbare Version von {result['page']} abgerufen"
 
-        # The lab version is a beta and is only reported for information
+        # Die Lab-Version ist eine Beta und wird nur zur Information gemeldet
         result["lab_version"] = await _async_fetch_version(
             session, base_url, house_id, LAB_VERSION_PATH, attempts
         )
 
-        # Ask the server whether a newer version is offered
+        # Den Server fragen, ob eine neuere Version angeboten wird
         url = f"{base_url}{UPDATE_AVAILABLE_PATH.format(house_id=house_id)}"
         available, info = await _async_has_update(session, url)
         attempts.append(f"{UPDATE_AVAILABLE_PATH.format(house_id=house_id)} -> {info}")
         result["available"] = available
 
-        # Information about the installed software and the system check
+        # Informationen zur installierten Software und zum Systemcheck
         url = f"{base_url}{MINISERVER_PATH.format(house_id=house_id)}"
         body, info = await _async_fetch_page(session, url)
         attempts.append(f"{MINISERVER_PATH.format(house_id=house_id)} -> {info}")

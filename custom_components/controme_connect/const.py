@@ -1,21 +1,21 @@
-"""Constants for the Controme integration."""
+"""Konstanten der Controme-Integration."""
 
 from datetime import timedelta
 from typing import Final
 from homeassistant.const import Platform
 
-# Integration domain
+# Domain der Integration
 DOMAIN: Final = "controme_connect"
 
-# Configuration keys used in the web configuration
+# Schlüssel der Konfiguration über die Weboberfläche
 CONF_API_URL: Final = "api_url"
 CONF_HAUS_ID: Final = "haus_id"
 CONF_USER: Final = "user"
 CONF_PASSWORD: Final = "password"
 
-# Platforms are now defined in __init__.py
+# Die Plattformen werden in __init__.py definiert
 
-# New constants
+# Neue Konstanten
 SENSOR_TYPE_CURRENT = "current"
 SENSOR_TYPE_TARGET = "target"
 SENSOR_TYPE_HUMIDITY = "humidity"
@@ -39,7 +39,7 @@ ENTITY_ID_MAP = {
     SENSOR_TYPE_OPERATION_MODE: "mode",
 }
 
-# Map sensor types to API data keys
+# Abbildung der Sensortypen auf die Datenschlüssel der API
 VALUE_MAP = {
     SENSOR_TYPE_CURRENT: "temperatur",
     SENSOR_TYPE_TARGET: "solltemperatur",
@@ -48,8 +48,8 @@ VALUE_MAP = {
     SENSOR_TYPE_OPERATION_MODE: "betriebsart",
 }
 
-# Room icons of the Controme web interface mapped to Material Design icons.
-# The plain icon name is kept as attribute of the climate entity.
+# Raum-Icons der Controme-Weboberfläche, abgebildet auf Material-Design-Icons.
+# Der reine Icon-Name wird als Attribut der Heizungs-Entity behalten.
 ROOM_ICONS: Final = {
     "sessel": "mdi:sofa",
     "bett": "mdi:bed",
@@ -63,19 +63,19 @@ ROOM_ICONS: Final = {
     "desk": "mdi:desk",
 }
 
-# Fallback for rooms with an unknown Controme icon
+# Ersatz für Räume mit unbekanntem Controme-Icon
 DEFAULT_ROOM_ICON: Final = "mdi:home-thermometer"
 
-# A sensor is considered stale when it did not report within this period
+# Ein Sensor gilt als veraltet, wenn er in diesem Zeitraum nicht gemeldet hat
 TRANSMISSION_TIMEOUT: Final = timedelta(minutes=30)
 
-# Battery and solar powered room thermostats (their value is delivered as a
-# dictionary) sleep between the transmissions, they report only every few hours
+# Batterie- und solarbetriebene Raumthermostate (ihr Wert wird als Dictionary
+# geliefert) schlafen zwischen den Übertragungen und melden sich nur alle paar Stunden
 TRANSMISSION_TIMEOUT_MULTI: Final = timedelta(hours=6)
 
-# The firmware update check needs a login to the web interface and is only
-# done every few hours
+# Die Prüfung auf Firmware-Updates braucht einen Login an der Weboberfläche und
+# erfolgt nur alle paar Stunden
 UPDATE_CHECK_INTERVAL: Final = timedelta(hours=6)
 
-# Number of house ids that are queried during the setup
+# Anzahl der Haus-IDs, die beim Einrichten abgefragt werden
 HOUSE_ID_CHECK_COUNT: Final = 10

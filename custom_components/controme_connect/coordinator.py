@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for Controme integration."""
+"""DataUpdateCoordinator der Controme-Integration."""
 import asyncio
 from datetime import timedelta
 import logging
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 REQUEST_TIMEOUT = ClientTimeout(total=10)
 
 class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
-    """Class to manage fetching Controme data."""
+    """Klasse zum Abrufen der Controme-Daten."""
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         user: str = "",
         password: str = "",
     ) -> None:
-        """Initialize the coordinator."""
+        """Initialisiert den Coordinator."""
         super().__init__(
             hass,
             _LOGGER,
@@ -51,26 +51,26 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self._houses: list[str] | None = None
 
     async def _async_get_json(self, path: str) -> Any:
-        """Fetch a single JSON document from the Controme API."""
+        """Ruft ein einzelnes JSON-Dokument von der Controme-API ab."""
         session = async_get_clientsession(self.hass)
         endpoint = f"{self._base_url}/get/json/v1/{self._house_id}/{path}"
 
         async with session.get(endpoint, timeout=REQUEST_TIMEOUT) as response:
             if response.status != 200:
-                raise UpdateFailed(f"Error fetching {path}: {response.status}")
+                raise UpdateFailed(f"Fehler beim Abruf von {path}: {response.status}")
             return await response.json()
 
     async def _async_get_optional(self, path: str, parser) -> Dict[Any, Any]:
-        """Fetch an optional endpoint and tolerate failures."""
+        """Ruft einen optionalen Endpunkt ab und verkraftet Fehler."""
         try:
             return parser(await self._async_get_json(path))
         except Exception as ex:  # pylint: disable=broad-except
-            _LOGGER.warning("Optional Controme endpoint %s is unavailable: %s", path, ex)
+            _LOGGER.warning("Optionaler Controme-Endpunkt %s ist nicht verfügbar: %s", path, ex)
             return {}
 
     @staticmethod
     def _parse_deviation(data: Any) -> Dict[int, Dict[str, Any]]:
-        """Convert the deviation endpoint into a room id mapping."""
+        """Wandelt den Endpunkt der Abweichung in eine Zuordnung von Raum-IDs um."""
         result: Dict[int, Dict[str, Any]] = {}
         if not isinstance(data, list):
             return result
@@ -86,7 +86,7 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
     @staticmethod
     def _parse_rooms(data: Any) -> Dict[int, str]:
-        """Convert the rooms endpoint into a room id to icon mapping."""
+        """Wandelt den Endpunkt der Räume in eine Zuordnung von Raum-ID zu Icon um."""
         result: Dict[int, str] = {}
         if not isinstance(data, list):
             return result
@@ -101,7 +101,7 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         return result
 
     async def _async_update_data(self) -> Dict[str, Any]:
-        """Fetch data from Controme API."""
+        """Ruft die Daten von der Controme-API ab."""
         session = async_get_clientsession(self.hass)
         endpoint = f"{self._base_url}/get/json/v1/{self._house_id}/temps/"
 
@@ -114,21 +114,21 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
 
             fetch_time = self.hass.loop.time() - start_time
             _LOGGER.debug(
-                "Finished fetching controme data in %.3f seconds (success: True)",
+                "Abruf der Controme-Daten in %.3f Sekunden abgeschlossen (erfolgreich: True)",
                 fetch_time,
             )
 
             if floors and isinstance(floors, list) and len(floors) > 0:
-                _LOGGER.debug("Received data for %d floors", len(floors))
+                _LOGGER.debug("Daten für %d Etagen empfangen", len(floors))
 
-            # The additional endpoints are optional, a missing one must not
-            # break the room sensors.
+            # Die zusätzlichen Endpunkte sind optional, ein fehlender darf die
+            # Raumsensoren nicht beeinträchtigen.
             deviation = await self._async_get_optional("deviation/", self._parse_deviation)
             rooms = await self._async_get_optional("rooms/", self._parse_rooms)
             info = await self._async_get_optional("info/", self._parse_info)
 
-            # Die Update-Pruefung laeuft im Hintergrund, damit eine
-            # langsame Weboberfuehrung die Raumsensoren nicht blockiert
+            # Die Update-Prüfung läuft im Hintergrund, damit eine
+            # langsame Weboberfläche die Raumsensoren nicht blockiert
             self._async_start_update_check()
 
             # Einmalig ermitteln, welche Haus-IDs die Anlage liefert
@@ -151,36 +151,37 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 "houses": self._houses or [],
             }
         except Exception as ex:
-            _LOGGER.error("Error communicating with API: %s", str(ex))
-            raise UpdateFailed(f"Error communicating with API: {str(ex)}")
+            _LOGGER.error("Fehler bei der Kommunikation mit der API: %s", str(ex))
+            raise UpdateFailed(f"Fehler bei der Kommunikation mit der API: {str(ex)}")
 
     @staticmethod
     def _parse_info(data: Any) -> Dict[str, Any]:
-        """Return the system information of the mini server."""
+        """Gibt die Systeminformationen des Mini-Servers zurück."""
         return data if isinstance(data, dict) else {}
 
     async def _async_detect_houses(self) -> list[str]:
-        """Return the house ids the Controme system delivers data for."""
+        """Gibt die Haus-IDs zurück, für die die Anlage Daten liefert."""
         try:
             return await async_detect_houses(
                 self._base_url, self._user, self._password
             )
         except Exception as ex:  # pylint: disable=broad-except
-            _LOGGER.warning("Could not determine the Controme houses: %s", ex)
+            _LOGGER.warning("Die Controme-Häuser konnten nicht ermittelt werden: %s", ex)
             return []
 
     async def async_shutdown(self) -> None:
-        """Shut down the coordinator and its background task."""
+        """Beendet den Coordinator und seine Hintergrundaufgabe."""
         if self._update_task is not None and not self._update_task.done():
             self._update_task.cancel()
         await super().async_shutdown()
 
     def _async_start_update_check(self) -> None:
-        """Start the firmware update check in the background.
+        """Startet die Prüfung auf Firmware-Updates im Hintergrund.
 
-        The check needs a login to the web interface and is only done every
-        few hours. It runs as a separate task, a slow or unreachable web
-        interface must never block or fail the room sensors.
+            Die Prüfung braucht einen Login an der Weboberfläche und
+            erfolgt nur alle paar Stunden. Sie läuft als eigene Aufgabe, eine
+            langsame oder nicht erreichbare Weboberfläche darf die
+            Raumsensoren niemals blockieren oder fehlschlagen lassen.
         """
         now = dt_util.utcnow()
         if self._next_update_check is not None and now < self._next_update_check:
@@ -192,17 +193,17 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         self._update_task = self.hass.async_create_task(self._async_check_update())
 
     async def _async_check_update(self) -> None:
-        """Check the web interface for an available firmware version."""
+        """Prüft die Weboberfläche auf eine verfügbare Firmware-Version."""
         try:
             result = await async_fetch_latest_version(
                 self._base_url, self._user, self._password, self._house_id
             )
         except asyncio.CancelledError:
-            # Die Pruefung wurde beim Entladen abgebrochen, das ist kein Fehler
+            # Die Prüfung wurde beim Entladen abgebrochen, das ist kein Fehler
             raise
         except Exception as ex:  # pylint: disable=broad-except
-            # The update check must never break the room sensors
-            _LOGGER.warning("Controme update check failed: %s", ex)
+            # Die Update-Prüfung darf die Raumsensoren nie beeinträchtigen
+            _LOGGER.warning("Die Controme-Update-Prüfung ist fehlgeschlagen: %s", ex)
             result = {
                 "version": None,
                 "lab_version": None,
@@ -213,4 +214,4 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             }
         # In place, damit die bereits verteilten Daten aktualisiert werden
         self._update_check.update(result)
-        _LOGGER.debug("Controme update check: %s", self._update_check)
+        _LOGGER.debug("Controme-Update-Prüfung: %s", self._update_check)

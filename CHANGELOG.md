@@ -1,9 +1,11 @@
-# Changelog
+# Änderungsprotokoll
 
-All notable changes to this project are documented in this file.
+Alle wesentlichen Änderungen an diesem Projekt sind in dieser Datei
+dokumentiert.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/)
+und das Projekt richtet sich nach
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0]
 
@@ -42,6 +44,13 @@ von *flame4ever*.
   der API antworten auch mit falschem Passwort.
 - **Haus-Auswahl** beim Einrichten und **Neu konfigurieren** für API-Adresse,
   Haus-ID, Benutzer und Passwort.
+- **Eigene Brand-Bilder** (`brand/icon.png` und `brand/logo.png`) – seit Home
+  Assistant 2026.3 liefert die Integration ihre Bilder lokal aus, sie haben
+  Vorrang vor dem CDN. Die Grafiken sind selbst erzeugt, es werden keine
+  Markenrechte Dritter berührt.
+- **Deutschsprachige Dokumentation** – Kommentare, Docstrings und Log-Meldungen
+  der Integration sowie dieses Änderungsprotokoll sind vollständig auf Deutsch.
+  Die englische README bleibt als englische Fassung erhalten.
 - **Eigene Domain** `controme_connect` mit eigenen Entity-IDs, damit die
   Integration unabhängig von der ursprünglichen betrieben werden kann.
 

@@ -1,4 +1,4 @@
-"""Support for Controme sensors."""
+"""Unterstützung der Sensoren von Controme."""
 import logging
 import re
 import unicodedata
@@ -39,17 +39,17 @@ from dataclasses import dataclass
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=60)
 
-# The Controme API marks return flow sensors with the short description "RL"
-# (e.g. "Galerie RL"). Other firmware versions use the full word instead.
+# Die Controme-API kennzeichnet die Rücklauf-Sensoren mit der Kurzbezeichnung "RL"
+# (z. B. "Galerie RL"). Andere Firmware-Versionen verwenden stattdessen das ganze Wort.
 RETURN_SENSOR_PATTERN = re.compile(r"(rücklauf|ruecklauf|\brl\b)", re.IGNORECASE)
 
-# Umlauts are transliterated so that entity ids stay ascii
+# Umlaute werden transkribiert, damit die Entity-IDs ASCII bleiben
 _TRANSLITERATION = str.maketrans(
     {"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss"}
 )
 
-# The last transmission is reported in different formats depending on the
-# endpoint, all of them are local times of the Controme system.
+# Die letzte Übertragung wird je nach Endpunkt in verschiedenen Formaten
+# gemeldet, alle sind Ortszeiten der Controme-Anlage.
 TRANSMISSION_FORMATS = (
     "%d.%m.%Y %H:%M:%S",
     "%d.%m.%Y %H:%M",
@@ -59,12 +59,12 @@ TRANSMISSION_FORMATS = (
 
 
 def is_return_sensor(description: str) -> bool:
-    """Return True if the sensor description marks a return flow sensor."""
+    """Gibt True zurück, wenn die Sensorbeschreibung einen Rücklauf-Sensor kennzeichnet."""
     return bool(RETURN_SENSOR_PATTERN.search(description or ""))
 
 
 def return_label(description: str, room_name: str) -> str:
-    """Return a short label describing the return sensor within a room."""
+    """Gibt ein kurzes Label zurück, das den Rücklauf-Sensor im Raum beschreibt."""
     label = RETURN_SENSOR_PATTERN.sub(" ", description or "")
     label = re.sub(r"\s+", " ", label).strip(" -_")
     room = (room_name or "").strip()
@@ -74,7 +74,7 @@ def return_label(description: str, room_name: str) -> str:
 
 
 def slugify(text: str) -> str:
-    """Convert a text into an ascii slug that can be used in entity ids."""
+    """Wandelt einen Text in einen ASCII-Slug um, der in Entity-IDs taugt."""
     text = (text or "").translate(_TRANSLITERATION)
     text = unicodedata.normalize("NFKD", text)
     text = "".join(char for char in text if not unicodedata.combining(char))
@@ -82,7 +82,7 @@ def slugify(text: str) -> str:
 
 
 def is_active_offset(values: Any) -> bool:
-    """Return True if a plugin currently applies an offset to the room."""
+    """Gibt True zurück, wenn ein Modul derzeit einen Offset auf den Raum anwendet."""
     if not isinstance(values, dict) or "raum" not in values:
         return False
     try:
@@ -92,7 +92,7 @@ def is_active_offset(values: Any) -> bool:
 
 
 def parse_transmission(value: str) -> datetime | None:
-    """Parse the last transmission timestamp of a Controme sensor."""
+    """Wertet den Zeitstempel der letzten Übertragung eines Controme-Sensors aus."""
     if not value:
         return None
     value = value.strip()
@@ -101,24 +101,25 @@ def parse_transmission(value: str) -> datetime | None:
             parsed = datetime.strptime(value, timestamp_format)
         except ValueError:
             continue
-        # The Controme system reports local times
+        # Die Controme-Anlage meldet Ortszeiten
         return parsed.replace(tzinfo=dt_util.now().tzinfo)
-    _LOGGER.debug("Unknown last transmission format: %s", value)
+    _LOGGER.debug("Unbekanntes Format der letzten Übertragung: %s", value)
     return None
 
 
 def is_multi_sensor(sensor: Any) -> bool:
-    """Return True if the sensor delivers several values.
+    """Gibt True zurück, wenn der Sensor mehrere Werte liefert.
 
-    The multi sensors of the Controme system (for example the room
-    thermostats with a solar cell) deliver their values as a dictionary.
-    They sleep between the transmissions, so they need a longer timeout.
+        Die Multi-Sensoren der Controme-Anlage (zum Beispiel die
+        Raumthermostate mit Solarzelle) liefern ihre Werte als Dictionary.
+        Sie schlafen zwischen den Übertragungen und brauchen deshalb ein
+        längeres Zeitlimit.
     """
     return isinstance((sensor or {}).get("wert"), dict)
 
 
 def find_room(coordinator, floor_id, room_id, fallback=None):
-    """Return the current room data of the last coordinator update."""
+    """Gibt die aktuellen Raumdaten des letzten Coordinator-Updates zurück."""
     for floor in coordinator.data.get("floors", []):
         if floor.get("id") == floor_id:
             for room in floor.get("raeume", []):
@@ -128,7 +129,7 @@ def find_room(coordinator, floor_id, room_id, fallback=None):
 
 
 def firmware_update_available(info: Any, update: Any) -> bool | None:
-    """Return True if the web interface offers a newer firmware version."""
+    """Gibt True zurück, wenn die Weboberfläche eine neuere Firmware bietet."""
     if update and update.get("available") is not None:
         return update["available"]
     installed = parse_version((info or {}).get("sw-date", ""))
@@ -146,7 +147,7 @@ RELOAD_COOLDOWN = timedelta(minutes=10)
 
 @dataclass
 class ContromeSensorEntityDescription(SensorEntityDescription):
-    """Describes Controme sensor entity."""
+    """Beschreibt die Sensor-Entity von Controme."""
 
 SENSOR_TYPES: tuple[ContromeSensorEntityDescription, ...] = (
     ContromeSensorEntityDescription(
@@ -187,24 +188,24 @@ SENSOR_TYPES: tuple[ContromeSensorEntityDescription, ...] = (
 )
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Set up the Controme sensor platform."""
+    """Richtet die Plattform der Sensoren ein."""
     sensors = []
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     data = coordinator.data
     house_id = entry.data[CONF_HAUS_ID]
 
-    # Create hub device
-    # The name of the hub device is set in __init__.py, it must not be
-    # overwritten here
+    # Hub-Gerät erzeugen
+    # Der Name des Hub-Geräts wird in __init__.py gesetzt und darf hier
+    # nicht überschrieben werden
     hub_device_info = DeviceInfo(
         identifiers={(DOMAIN, house_id)},
     )
     hub_device_id = hass.data[DOMAIN][entry.entry_id].get("hub_device_id")
     entity_registry = er.async_get(hass)
 
-    _LOGGER.debug("Setting up Controme sensors with data: %s", data)
+    _LOGGER.debug("Die Controme-Sensoren werden mit diesen Daten eingerichtet: %s", data)
 
-    # The firmware of the mini server is not bound to a room
+    # Die Firmware des Mini-Servers gehört zu keinem Raum
     sensors.append(
         ContromeFirmwareSensor(
             coordinator,
@@ -214,28 +215,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     )
 
     if not data.get("floors"):
-        _LOGGER.error("No data received from coordinator")
+        _LOGGER.error("Vom Coordinator wurden keine Daten empfangen")
         return
 
-    # Process all floors and rooms
+    # Alle Etagen und Räume verarbeiten
     for floor in data["floors"]:
         floor_id = floor.get("id")
         floor_name = floor.get("etagenname", f"Floor {floor_id}")
         rooms = floor.get("raeume", [])
-        _LOGGER.debug("Processing floor %s with rooms: %s", floor_id, rooms)
+        _LOGGER.debug("Etagen %s wird mit den Räumen verarbeitet: %s", floor_id, rooms)
 
         if not rooms and ("temperatur" in floor or "solltemperatur" in floor):
             rooms = [floor]
-            _LOGGER.debug("Using floor as room because no rooms found")
+            _LOGGER.debug("Die Etage wird als Raum verwendet, weil keine Räume gefunden wurden")
 
         for index, room in enumerate(rooms):
             room_id = room.get("id")
             if not room_id:
                 room_id = f"{floor_id}_{index}"
             room_name = room.get("name", f"Room {room_id}")
-            _LOGGER.debug("Processing room %s with data: %s", room_name, room)
+            _LOGGER.debug("Raum %s wird mit diesen Daten verarbeitet: %s", room_name, room)
 
-            # Add room data
+            # Raumdaten hinzufügen
             room["floor_id"] = floor_id
             device_info = DeviceInfo(
                 identifiers={(DOMAIN, f"{house_id}_{floor_id}_{room_id}")},
@@ -245,12 +246,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 via_device_id=hub_device_id,
             )
 
-            # Add basic sensors
+            # Grundsensoren hinzufügen
             for sensor_type, data_key in VALUE_MAP.items():
-                _LOGGER.debug("Checking for %s sensor (key: %s) in room data: %s",
+                _LOGGER.debug("Es wird nach dem Sensor %s (Schlüssel: %s) in den Raumdaten gesucht: %s",
                             sensor_type, data_key, data_key in room)
                 if data_key in room:
-                    _LOGGER.debug("Adding %s sensor for room %s", sensor_type, room_name)
+                    _LOGGER.debug("Sensor %s wird für den Raum %s hinzugefügt", sensor_type, room_name)
                     if sensor_type == "operation_mode":
                         sensor_class = ContromeOperationModeSensor
                     else:
@@ -264,9 +265,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                             device_info,
                         )
                     )
-                    _LOGGER.debug("%s sensor added", sensor_type)
+                    _LOGGER.debug("Sensor %s hinzugefügt", sensor_type)
 
-            # Process return temperature sensors
+            # Rücklauftemperatur-Sensoren verarbeiten
             return_sensors = [
                 sensor
                 for sensor in room.get("sensoren", [])
@@ -284,7 +285,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     while slug in used_slugs:
                         slug = f"{slug}_{index + 1}"
                 used_slugs.add(slug)
-                _LOGGER.debug("Adding return sensor %s (%s) for room %s",
+                _LOGGER.debug("Rücklauf-Sensor %s (%s) wird für den Raum %s hinzugefügt",
                               sensor.get("name"), description, room_name)
                 sensors.append(
                     ContromeSensor(
@@ -298,18 +299,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                         return_total=len(return_sensors),
                     )
                 )
-                _LOGGER.debug("Return sensor added")
+                _LOGGER.debug("Rücklauf-Sensor hinzugefügt")
 
-            # Plugins that currently influence the room
+            # Module, die den Raum derzeit beeinflussen
             active_plugins = [
                 plugin
                 for plugin, values in (room.get("offsets") or {}).items()
                 if is_active_offset(values)
             ]
 
-            # Deviation between current and target temperature. It also
-            # watches the room offsets and enables the sensor of a module
-            # that starts to influence the room later on.
+            # Abweichung zwischen Ist- und Zieltemperatur. Sie beobachtet außerdem
+            # die Offsets des Raums und aktiviert die Entity eines Moduls,
+            # das den Raum später zu beeinflussen beginnt.
             sensors.append(
                 ContromeDeviationSensor(
                     coordinator,
@@ -320,7 +321,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 )
             )
 
-            # Last transmission of the sensors of the room
+            # Letzte Übertragung der Sensoren des Raums
             sensors.append(
                 ContromeLastTransmissionSensor(
                     coordinator,
@@ -330,9 +331,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 )
             )
 
-            # Offset of every plugin that currently influences the room. The
-            # sensors of the inactive modules are deactivated, so that only
-            # the modules that really shift the setpoint are shown.
+            # Offset jedes Moduls, das den Raum derzeit beeinflusst. Die
+            # Entities der inaktiven Module sind deaktiviert, damit nur
+            # die Module erscheinen, die den Sollwert wirklich verschieben.
             for plugin, values in (room.get("offsets") or {}).items():
                 if not isinstance(values, dict) or "raum" not in values:
                     continue
@@ -344,12 +345,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 if entity_id:
                     registry_entry = entity_registry.async_get(entity_id)
                     if active and registry_entry.disabled:
-                        # The module influences the room again
+                        # Das Modul beeinflusst den Raum wieder
                         entity_registry.async_update_entity(
                             entity_id, disabled_by=None
                         )
                     elif not active and not registry_entry.disabled:
-                        # The module does not influence the room at the moment
+                        # Das Modul beeinflusst den Raum derzeit nicht
                         entity_registry.async_update_entity(
                             entity_id,
                             disabled_by=er.RegistryEntryDisabler.INTEGRATION,
@@ -365,16 +366,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     )
                 )
 
-    _LOGGER.debug("Created %d sensors in total", len(sensors))
+    _LOGGER.debug("Insgesamt %d Sensoren erzeugt", len(sensors))
     async_add_entities(sensors)
 
 class ContromeSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Controme Sensor."""
+    """Abbildung eines Controme-Sensors."""
 
     _attr_has_entity_name = True
 
     def __init_sensor_description(self, sensor_type: str) -> None:
-        """Initialize the sensor description based on type."""
+        """Initialisiert die Beschreibung des Sensors anhand des Typs."""
         base_type = sensor_type.split("_")[0]
         self.entity_description = next(
             (desc for desc in SENSOR_TYPES if desc.key == base_type),
@@ -382,7 +383,7 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
         )
 
     def __init_entity_id(self, sensor_type: str, room_name: str) -> None:
-        """Initialize the entity ID."""
+        """Initialisiert die Entity-ID."""
         room_name_lower = room_slug(room_name)
         suffix = (
             "return"
@@ -395,7 +396,7 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
         self.entity_id = entity_id
 
     def __init_name(self, sensor_type: str) -> None:
-        """Initialize the sensor name."""
+        """Initialisiert den Namen des Sensors."""
         name_map = {
             "current": "Temperatur",
             "target": "Zieltemperatur",
@@ -413,12 +414,12 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(self, coordinator, config_entry, room_data, sensor_type, device_info,
                  return_label: str = "", return_slug: str = "", return_total: int = 1):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
-        _LOGGER.debug("Initializing sensor with type %s for room %s",
+        _LOGGER.debug("Sensor vom Typ %s wird für den Raum %s initialisiert",
                     sensor_type, room_data.get("name"))
 
-        # Set basic attributes
+        # Grundattribute setzen
         self._config_entry = config_entry
         self._device_info = device_info
         self._room_data = room_data
@@ -433,38 +434,38 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
         self._humidity_source: str | None = None
         self._multi_sensor_values: dict[str, Any] = {}
 
-        # Set unique ID and entity ID
+        # Unique-ID und Entity-ID setzen
         self._attr_unique_id = f"{self._house_id}_{self._floor_id}_{self._room_id}_{sensor_type}"
         self.__init_sensor_description(sensor_type)
         self.__init_entity_id(sensor_type, room_data.get("name", ""))
         self.__init_name(sensor_type)
 
-        # Set initial values
+        # Anfangswerte setzen
         self._update_from_data(room_data)
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         attributes = {
             "room_id": self._room_id,
             "floor_id": self._floor_id,
             "house_id": self._house_id,
         }
         if self._sensor_type == "humidity":
-            # Where the humidity comes from and the other values of the
-            # multi sensors (brightness, motion)
+            # Herkunft der Luftfeuchte und die übrigen Werte der
+            # Multi-Sensoren (Helligkeit, Bewegung)
             attributes["source"] = self._humidity_source
             attributes.update(self._multi_sensor_values)
         return attributes
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         room_data = find_room(
             self.coordinator, self._floor_id, self._room_id, self._room_data
         )
@@ -473,7 +474,7 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     def _update_from_data(self, room_data):
-        """Update sensor state from room data."""
+        """Aktualisiert den Zustand des Sensors aus den Raumdaten."""
         if self._sensor_type.startswith("return_"):
             found = False
             for sensor in room_data.get("sensoren", []):
@@ -494,13 +495,13 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
                 self._attr_available = False
         else:
             value = room_data.get(VALUE_MAP.get(self._sensor_type))
-            # For numeric sensors, ensure we have numeric values
+            # Bei numerischen Sensoren sicherstellen, dass die Werte Zahlen sind
             if self.entity_description.device_class in [
                 SensorDeviceClass.TEMPERATURE,
                 SensorDeviceClass.HUMIDITY
             ]:
                 if self._sensor_type == "humidity":
-                    # The humidity can also be part of a multi sensor value
+                    # Die Luftfeuchte kann auch Teil eines Multi-Sensor-Werts sein
                     humidity, source = extract_humidity(room_data)
                     self._attr_native_value = humidity
                     self._attr_available = humidity is not None
@@ -516,7 +517,7 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
                     try:
                         self._attr_native_value = float(value) if value is not None else None
                         if self._sensor_type == "total_offset":
-                            # The API delivers the offsets with many decimal places
+                            # Die API liefert die Offsets mit vielen Nachkommastellen
                             self._attr_native_value = round(self._attr_native_value, 2)
                         self._attr_available = True
                     except (ValueError, TypeError):
@@ -528,14 +529,14 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
 
 
 class ContromeFirmwareSensor(CoordinatorEntity, SensorEntity):
-    """Representation of the firmware of the Controme mini server."""
+    """Abbildung der Firmware des Controme-Mini-Servers."""
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:chip"
 
     def __init__(self, coordinator, config_entry, device_info):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -549,12 +550,12 @@ class ContromeFirmwareSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         info = self.coordinator.data.get("info") or {}
         update = self.coordinator.data.get("update") or {}
         section = update.get("update_section") or {}
@@ -585,12 +586,12 @@ class ContromeFirmwareSensor(CoordinatorEntity, SensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the firmware version."""
+        """Aktualisiert die Firmware-Version."""
         info = self.coordinator.data.get("info") or {}
         version = info.get("sw-date")
         self._attr_native_value = version
@@ -598,7 +599,7 @@ class ContromeFirmwareSensor(CoordinatorEntity, SensorEntity):
 
 
 class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
-    """Representation of the deviation between current and target temperature."""
+    """Abbildung der Abweichung zwischen Ist- und Zieltemperatur."""
 
     _attr_has_entity_name = True
     _attr_device_class = None
@@ -608,7 +609,7 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(self, coordinator, config_entry, room_data, device_info,
                  known_offsets=None):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -627,12 +628,12 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         return {
             "room_id": self._room_id,
             "floor_id": self._floor_id,
@@ -641,16 +642,16 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the deviation from the coordinator data."""
+        """Aktualisiert die Abweichung aus den Daten des Coordinators."""
         deviation = (self.coordinator.data.get("deviation") or {}).get(self._room_id) or {}
         value = deviation.get("deviation")
         try:
-            # The API delivers the deviation with many decimal places
+            # Die API liefert die Abweichung mit vielen Nachkommastellen
             self._attr_native_value = round(float(value), 2)
             self._attr_available = True
         except (TypeError, ValueError):
@@ -660,12 +661,12 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
         self._check_offset_plugins()
 
     def _check_offset_plugins(self):
-        """Reload the integration when a module starts to influence the room.
+        """Lädt die Integration neu, wenn ein Modul den Raum zu beeinflussen beginnt.
 
-        The sensors of the inactive modules are deactivated on the start of the
-        integration. If a module starts to influence the room later on, for
-        example the weather correction in the heating season, the integration
-        is reloaded and the sensors are set up again.
+            Die Entities der inaktiven Module sind beim Start der Integration
+            deaktiviert. Beginnt ein Modul später den Raum zu beeinflussen,
+            zum Beispiel die Wetterkorrektur in der Heizsaison, wird die
+            Integration neu geladen und die Entities werden neu eingerichtet.
         """
         if self.hass is None:
             return
@@ -698,7 +699,7 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
 
 
 class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
-    """Representation of the last transmission of the sensors of a room."""
+    """Abbildung der letzten Übertragung der Sensoren eines Raums."""
 
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
@@ -706,7 +707,7 @@ class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
     _attr_icon = "mdi:clock-check-outline"
 
     def __init__(self, coordinator, config_entry, room_data, device_info):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -729,12 +730,12 @@ class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         now = dt_util.now()
         return {
             "room_id": self._room_id,
@@ -761,12 +762,12 @@ class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the last transmission of the room sensors."""
+        """Aktualisiert die letzte Übertragung der Raumsensoren."""
         room_data = find_room(
             self.coordinator, self._floor_id, self._room_id, self._room_data
         ) or {}
@@ -790,13 +791,13 @@ class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
         self._timestamps = timestamps
         self._oldest_sensor = oldest_sensor
         self._oldest_transmission = oldest
-        # Die juengste Uebertragung zeigt, wie aktuell die Daten des Raums sind
+        # Die jüngste Übertragung zeigt, wie aktuell die Daten des Raums sind
         self._attr_native_value = newest
         self._attr_available = newest is not None
 
 
 class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
-    """Representation of the offset a single plugin applies to a room."""
+    """Abbildung des Offsets, den ein einzelnes Modul auf einen Raum anwendet."""
 
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TEMPERATURE
@@ -805,7 +806,7 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(self, coordinator, config_entry, room_data, device_info, plugin,
                  enabled: bool = True):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -815,8 +816,8 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
         self._house_id = config_entry.data[CONF_HAUS_ID]
         self._plugin = plugin
         self._house_offset: float | None = None
-        # A module that does not influence the room is deactivated, so that
-        # only the active modules are shown.
+        # Ein Modul, das den Raum nicht beeinflusst, ist deaktiviert, damit
+        # nur die aktiven Module erscheinen.
         self._attr_entity_registry_enabled_default = enabled
 
         room_name = room_data.get("name", "")
@@ -832,12 +833,12 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Gibt die Zustandsattribute zurück."""
         return {
             "room_id": self._room_id,
             "floor_id": self._floor_id,
@@ -848,18 +849,18 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         self._update_from_data()
         self.async_write_ha_state()
 
     def _update_from_data(self):
-        """Update the offset of the plugin."""
+        """Aktualisiert den Offset des Moduls."""
         room_data = find_room(
             self.coordinator, self._floor_id, self._room_id, self._room_data
         ) or {}
         values = (room_data.get("offsets") or {}).get(self._plugin) or {}
         try:
-            # The API delivers the offsets with many decimal places
+            # Die API liefert die Offsets mit vielen Nachkommastellen
             self._attr_native_value = round(float(values.get("raum")), 2)
             self._attr_available = True
         except (TypeError, ValueError):
@@ -872,12 +873,12 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
 
 
 class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Controme Operation Mode Sensor."""
+    """Abbildung eines Controme-Sensors für die Betriebsart."""
 
     _attr_has_entity_name = True
 
     def __init__(self, coordinator, config_entry, room_data, sensor_type, device_info):
-        """Initialize the sensor."""
+        """Initialisiert den Sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_info = device_info
@@ -886,13 +887,13 @@ class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
         self._floor_id = room_data.get("floor_id")
         self._house_id = config_entry.data[CONF_HAUS_ID]
 
-        # Set unique ID and entity ID
+        # Unique-ID und Entity-ID setzen
         self._attr_unique_id = f"{self._house_id}_{self._floor_id}_{self._room_id}_operation_mode"
         room_name = room_data.get("name", "")
         room_name_lower = room_slug(room_name)
         self.entity_id = f"sensor.controme_connect_{room_name_lower}_mode"
 
-        # Set entity description
+        # Beschreibung der Entity setzen
         self.entity_description = ContromeSensorEntityDescription(
             key="operation_mode",
             translation_key="operation_mode",
@@ -902,20 +903,20 @@ class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
             has_entity_name=True,
         )
 
-        # Set name
+        # Namen setzen
         self._attr_name = "Betriebsart"
 
-        # Set initial value and availability
+        # Anfangswert und Verfügbarkeit setzen
         self._update_from_data(room_data)
 
     @property
     def device_info(self):
-        """Return device info for this sensor."""
+        """Gibt die Geräteinformationen dieses Sensors zurück."""
         return self._device_info
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Verarbeitet die aktualisierten Daten des Coordinators."""
         updated = False
         for floor in self.coordinator.data.get("floors", []):
             if floor["id"] == self._floor_id:
@@ -930,7 +931,7 @@ class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     def _update_from_data(self, room_data):
-        """Update sensor state from room data."""
+        """Aktualisiert den Zustand des Sensors aus den Raumdaten."""
         value = room_data.get(VALUE_MAP["operation_mode"])
         self._attr_native_value = value
         self._attr_available = value is not None
