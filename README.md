@@ -315,6 +315,37 @@ Firmware-Check läuft davon unbeeinflusst im Hintergrund.
 - Ein Update der Firmware selbst muss über die Weboberfläche der Anlage
   ausgelöst werden; die Integration meldet es nur.
 
+## Veröffentlichung
+
+Das Repository wird zunächst **privat** veröffentlicht, damit die Integration
+zuerst im eigenen System getestet werden kann.
+
+```bash
+cd /config/homeassistant-controme-connect
+
+# Identität für die Commits setzen
+git config user.name "Dein Name"
+git config user.email "deine@adresse"
+
+# Privates Repository anlegen und pushen
+gh repo create homeassistant-controme-connect --private --source=. --remote=origin --push
+# oder ohne gh:
+#   github.com → New repository → Private → dann:
+git remote add origin https://github.com/<dein-nutzer>/homeassistant-controme-connect.git
+git push -u origin main
+```
+
+Zum Testen im eigenen System genügt die manuelle Installation – ein GitHub-Konto
+ist dafür nicht nötig:
+
+```bash
+./install.sh && # Home Assistant neu starten
+```
+
+Wird das Repository später **öffentlich** gestellt, ist es über HACS
+installierbar. Vorher sollte im `manifest.json` die Adresse von
+`documentation` und `issue_tracker` auf das eigene Repository zeigen.
+
 ## Mitwirken
 
 Fehler und Verbesserungen sind willkommen – bitte als
