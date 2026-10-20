@@ -229,15 +229,20 @@ async def _async_has_update(session, url: str) -> tuple[bool | None, str]:
 
     The web interface uses the same request: a successful answer means that
     an update is offered, an error means that the installed version is the
-    newest one.
+    newest one. The error page of the web interface is answered with status
+    200, so the content has to be checked as well.
     """
     try:
         async with session.get(url) as response:
             status = response.status
-            if status == 200:
-                body = await response.text()
-                return True, f"HTTP 200 ({body.strip()[:60]})"
-            return False, f"HTTP {status}"
+            if status != 200:
+                return False, f"HTTP {status}"
+            body = await response.text()
+            if any(marker in body for marker in ERROR_MARKERS):
+                return False, f"HTTP 200 ({body.strip()[:60]})"
+            if not body.strip():
+                return None, "HTTP 200 (leere Antwort)"
+            return True, f"HTTP 200 ({body.strip()[:60]})"
     except aiohttp.ClientError as err:
         _LOGGER.debug("Controme update query failed: %s", err)
         return None, f"Fehler: {err}"
@@ -262,39 +267,42 @@ async def async_check_credentials(
         return False, f"Die Controme-Weboberfläche ist nicht erreichbar: {err}"
 
 
-async def async_detect_houses(base_url: str) -> list[str]:
-    """Return the house ids the Controme system delivers different data for.
+async def async_detect_houses(
+    base_url: str, user: str = "", password: str = ""
+) -> list[str]:
+    """Return the house ids the Controme system provides a web interface for.
 
-    The API does not offer a list of the houses. The ids are therefore
-    queried one after the other and the different answers are the houses.
+    The data endpoints of the API answer for every house id, so they cannot be
+    used to tell the houses apart. The web interface however is bound to a
+    house, it only exists for the houses that are actually configured. One
+    login is enough for the query of all ids.
     """
-    async def fetch(house_id: str) -> tuple[str, str | None]:
-        """Return the id and the answer of the rooms endpoint."""
-        url = f"{base_url.rstrip('/')}/get/json/v1/{house_id}/rooms/"
-        try:
-            async with aiohttp.ClientSession(timeout=REQUEST_TIMEOUT) as session:
-                async with session.get(url) as response:
-                    if response.status != 200:
-                        return house_id, None
-                    return house_id, await response.text()
-        except aiohttp.ClientError:
-            return house_id, None
-
-    results = await asyncio.gather(
-        *(fetch(str(house_id)) for house_id in range(1, HOUSE_ID_CHECK_COUNT + 1))
-    )
-
+    jar = aiohttp.CookieJar(unsafe=True)
     houses: list[str] = []
-    seen: set[str] = set()
-    for house_id, content in results:
-        if content is None:
-            continue
-        key = content.strip()
-        if key in seen:
-            continue
-        seen.add(key)
-        houses.append(house_id)
-    return houses or ["1"]
+    try:
+        async with aiohttp.ClientSession(
+            cookie_jar=jar, timeout=REQUEST_TIMEOUT
+        ) as session:
+            if user and password:
+                logged_in, _ = await _async_login(session, base_url, user, password)
+                if not logged_in:
+                    _LOGGER.warning(
+                        "Could not log in to the Controme web interface, "
+                        "the houses cannot be determined"
+                    )
+                    return []
+            for house_id in range(1, HOUSE_ID_CHECK_COUNT + 1):
+                url = (
+                    f"{base_url.rstrip('/')}/m_setup/{house_id}"
+                    "/hardware/setup_rpi/?create=2"
+                )
+                body, _ = await _async_fetch_page(session, url)
+                if body is not None:
+                    houses.append(str(house_id))
+    except aiohttp.ClientError as err:
+        _LOGGER.warning("Could not determine the Controme houses: %s", err)
+        return []
+    return houses
 
 
 async def _async_fetch_version(

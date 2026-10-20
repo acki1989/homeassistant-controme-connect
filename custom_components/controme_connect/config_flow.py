@@ -268,10 +268,14 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _async_select_house(self) -> FlowResult:
         """Determine the houses and let the user choose one."""
-        self._houses = await async_detect_houses(self._user_input[CONF_API_URL])
+        self._houses = await async_detect_houses(
+            self._user_input[CONF_API_URL],
+            self._user_input[CONF_USER],
+            self._user_input[CONF_PASSWORD],
+        )
         _LOGGER.info("Controme houses found: %s", self._houses)
 
-        if len(self._houses) <= 1:
+        if len(self._houses) == 1:
             self._user_input[CONF_HAUS_ID] = self._houses[0]
             return self._async_create_entry()
         return await self.async_step_select_house()
@@ -284,13 +288,18 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._user_input[CONF_HAUS_ID] = user_input[CONF_HAUS_ID]
             return self._async_create_entry()
 
-        data_schema = vol.Schema(
-            {
-                vol.Required(CONF_HAUS_ID): vol.In(
-                    {house_id: f"Haus {house_id}" for house_id in self._houses}
-                )
-            }
-        )
+        if self._houses:
+            data_schema = vol.Schema(
+                {
+                    vol.Required(CONF_HAUS_ID): vol.In(
+                        {house_id: f"Haus {house_id}" for house_id in self._houses}
+                    )
+                }
+            )
+        else:
+            # Die Häuser konnten nicht ermittelt werden, die ID wird von Hand
+            # eingetragen
+            data_schema = vol.Schema({vol.Required(CONF_HAUS_ID, default="1"): str})
         return self.async_show_form(step_id="select_house", data_schema=data_schema, errors={})
 
     def _async_create_entry(self) -> FlowResult:

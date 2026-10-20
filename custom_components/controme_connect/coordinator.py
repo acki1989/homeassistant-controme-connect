@@ -134,6 +134,13 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             # Einmalig ermitteln, welche Haus-IDs die Anlage liefert
             if self._houses is None:
                 self._houses = await self._async_detect_houses()
+                if self._houses and self._house_id not in self._houses:
+                    _LOGGER.warning(
+                        "Die eingestellte Haus-ID %s gibt es in dieser Anlage nicht, "
+                        "verfügbar sind: %s. Bitte unter Neu konfigurieren anpassen.",
+                        self._house_id,
+                        ", ".join(self._houses),
+                    )
 
             return {
                 "floors": floors,
@@ -155,7 +162,9 @@ class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     async def _async_detect_houses(self) -> list[str]:
         """Return the house ids the Controme system delivers data for."""
         try:
-            return await async_detect_houses(self._base_url)
+            return await async_detect_houses(
+                self._base_url, self._user, self._password
+            )
         except Exception as ex:  # pylint: disable=broad-except
             _LOGGER.warning("Could not determine the Controme houses: %s", ex)
             return []
