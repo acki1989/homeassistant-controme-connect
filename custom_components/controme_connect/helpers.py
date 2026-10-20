@@ -3,20 +3,92 @@ import asyncio
 import logging
 import re
 import unicodedata
+from datetime import datetime
 from typing import List, Dict, Any, Optional, Set
 import socket
 import aiohttp
 import async_timeout
 from ipaddress import IPv4Network, IPv4Address, IPv4Interface
 
+from homeassistant.util import dt as dt_util
+
 from .const import DEFAULT_ROOM_ICON, ROOM_ICONS
 
 _LOGGER = logging.getLogger(__name__)
+
+# Die Anlage kennzeichnet die Rücklauf-Sensoren mit "RL" oder dem ganzen Wort
+RETURN_SENSOR_PATTERN = re.compile(r"(rücklauf|ruecklauf|\brl\b)", re.IGNORECASE)
+
+# Die Formate, in denen die Anlage den Zeitpunkt der letzten Übertragung meldet
+TRANSMISSION_FORMATS = (
+    "%d.%m.%Y %H:%M:%S",
+    "%d.%m.%Y %H:%M",
+    "%H:%M:%S %d.%m.%Y",
+    "%H:%M %d.%m.%Y",
+    "%Y-%m-%dT%H:%M:%S%z",
+    "%Y-%m-%dT%H:%M:%S",
+)
 
 
 def room_icon(controme_icon: str) -> str:
     """Gibt das Material-Design-Icon zu einem Controme-Raum-Icon zurück."""
     return ROOM_ICONS.get(controme_icon, DEFAULT_ROOM_ICON)
+
+
+def is_return_sensor(description: str) -> bool:
+    """Gibt True zurück, wenn die Sensorbeschreibung einen Rücklauf-Sensor kennzeichnet."""
+    return bool(RETURN_SENSOR_PATTERN.search(description or ""))
+
+
+def return_label(description: str, room_name: str) -> str:
+    """Gibt ein kurzes Label zurück, das den Rücklauf-Sensor im Raum beschreibt."""
+    label = RETURN_SENSOR_PATTERN.sub(" ", description or "")
+    label = re.sub(r"\s+", " ", label).strip(" -_")
+    room = (room_name or "").strip()
+    if room and label.lower().startswith(room.lower()):
+        label = label[len(room):].strip(" -_")
+    return label
+
+
+def is_active_offset(values: Any) -> bool:
+    """Gibt True zurück, wenn ein Modul derzeit einen Offset auf den Raum anwendet."""
+    if not isinstance(values, dict) or "raum" not in values:
+        return False
+    try:
+        return float(values["raum"]) != 0
+    except (TypeError, ValueError):
+        return False
+
+
+def parse_number(value: Any) -> float | None:
+    """Wandelt einen Wert der Anlage in eine Zahl um.
+
+        Die Anlage liefert für nicht vorhandene Messwerte Platzhaltertexte
+        wie "kein Sensor vorhanden". Eine echte Null ist dagegen ein
+        gültiger Messwert und darf nicht als fehlend gelten.
+    """
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_transmission(value: str) -> datetime | None:
+    """Wertet den Zeitstempel der letzten Übertragung eines Controme-Sensors aus."""
+    if not value:
+        return None
+    value = value.strip()
+    for timestamp_format in TRANSMISSION_FORMATS:
+        try:
+            parsed = datetime.strptime(value, timestamp_format)
+        except ValueError:
+            continue
+        # Die Controme-Anlage meldet Ortszeiten
+        return parsed.replace(tzinfo=dt_util.now().tzinfo)
+    _LOGGER.debug("Unbekanntes Format der letzten Übertragung: %s", value)
+    return None
 
 
 def room_slug(room_name: str) -> str:
@@ -40,7 +112,7 @@ def extract_humidity(room_data: Any) -> tuple[float | None, str | None]:
     try:
         return float(room_data.get("luftfeuchte")), "room"
     except (TypeError, ValueError):
-        pass  # The value is not a number, the multi sensor is used instead
+        pass  # Der Wert ist keine Zahl, es wird der Multi-Sensor verwendet
 
     for sensor in room_data.get("sensoren", []):
         sensor_value = sensor.get("wert")

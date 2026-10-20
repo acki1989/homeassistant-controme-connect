@@ -375,6 +375,15 @@ custom_components/controme_connect/
 Die Integration braucht keine zusätzlichen Python-Abhängigkeiten und läuft
 vollständig im lokalen Netz.
 
+### Tests
+
+Die reinen Hilfsfunktionen sind durch Unit-Tests abgedeckt:
+
+```bash
+pip install pytest aiohttp
+python -m pytest tests/
+```
+
 ## Danksagung
 
 - **flame4ever** für die ursprüngliche

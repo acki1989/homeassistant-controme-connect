@@ -57,11 +57,21 @@ von *flame4ever*.
   Entity-IDs der eigenen Integration bleiben unverändert.
 - **Manifest verweist auf das eigene Repository** – `documentation` und
   `issue_tracker` zeigen auf `github.com/acki1989/homeassistant-controme-connect`.
+- **Unit-Tests** für die reinen Hilfsfunktionen unter `tests/` (88 Tests):
+  Raum-Slugs, Raum-Icons, Erkennung der Rücklauf-Sensoren, Offsets,
+  Umwandlung der API-Werte, Zeitstempel der letzten Übertragung, die
+  Firmware-Hilfsfunktionen sowie die Vollständigkeit der Übersetzungen und
+  der Dokumentation.
+- **Vollständige englische Fassung** der Dokumentation: `README.en.md`
+  beschreibt jetzt denselben Umfang wie die deutsche Fassung.
 - **Eigene Domain** `controme_connect` mit eigenen Entity-IDs, damit die
   Integration unabhängig von der ursprünglichen betrieben werden kann.
 
 ### Behoben
 
+- Ein Offset von **null** wurde als fehlender Wert behandelt. Die betroffenen
+  Entities standen auf `unknown`, obwohl die Anlage den Wert `0` liefert.
+  Betroffen waren die Gesamtoffset-Sensoren und die Offsets der Module.
 - Die Betriebsart blieb englisch. Die Anlage liefert den Zustand „Heating“,
   der Übersetzungsschlüssel hieß „heating“ und traf deshalb nie. Die Zustände
   der Betriebsart sind jetzt übersetzt und werden klein geschrieben.

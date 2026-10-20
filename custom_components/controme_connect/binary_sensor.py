@@ -17,12 +17,11 @@ from .const import (
     TRANSMISSION_TIMEOUT,
     TRANSMISSION_TIMEOUT_MULTI,
 )
-from .helpers import room_slug
+from .helpers import parse_transmission, room_slug
 from .sensor import (
     find_room,
     firmware_update_available,
     is_multi_sensor,
-    parse_transmission,
 )
 
 _LOGGER = logging.getLogger(__name__)

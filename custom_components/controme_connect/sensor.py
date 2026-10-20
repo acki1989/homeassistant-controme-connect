@@ -32,45 +32,26 @@ from .const import (
     TRANSMISSION_TIMEOUT_MULTI,
 )
 from .firmware import parse_version
-from .helpers import extract_humidity, extract_multi_sensor_values, room_slug
+from .helpers import (
+    extract_humidity,
+    extract_multi_sensor_values,
+    is_active_offset,
+    is_return_sensor,
+    parse_number,
+    parse_transmission,
+    return_label,
+    room_slug,
+)
 
 from dataclasses import dataclass
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=60)
 
-# Die Controme-API kennzeichnet die Rücklauf-Sensoren mit der Kurzbezeichnung "RL"
-# (z. B. "Galerie RL"). Andere Firmware-Versionen verwenden stattdessen das ganze Wort.
-RETURN_SENSOR_PATTERN = re.compile(r"(rücklauf|ruecklauf|\brl\b)", re.IGNORECASE)
-
 # Umlaute werden transkribiert, damit die Entity-IDs ASCII bleiben
 _TRANSLITERATION = str.maketrans(
     {"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss"}
 )
-
-# Die letzte Übertragung wird je nach Endpunkt in verschiedenen Formaten
-# gemeldet, alle sind Ortszeiten der Controme-Anlage.
-TRANSMISSION_FORMATS = (
-    "%d.%m.%Y %H:%M:%S",
-    "%d.%m.%Y %H:%M",
-    "%H:%M:%S %d.%m.%Y",
-    "%H:%M %d.%m.%Y",
-)
-
-
-def is_return_sensor(description: str) -> bool:
-    """Gibt True zurück, wenn die Sensorbeschreibung einen Rücklauf-Sensor kennzeichnet."""
-    return bool(RETURN_SENSOR_PATTERN.search(description or ""))
-
-
-def return_label(description: str, room_name: str) -> str:
-    """Gibt ein kurzes Label zurück, das den Rücklauf-Sensor im Raum beschreibt."""
-    label = RETURN_SENSOR_PATTERN.sub(" ", description or "")
-    label = re.sub(r"\s+", " ", label).strip(" -_")
-    room = (room_name or "").strip()
-    if room and label.lower().startswith(room.lower()):
-        label = label[len(room):].strip(" -_")
-    return label
 
 
 def slugify(text: str) -> str:
@@ -79,32 +60,6 @@ def slugify(text: str) -> str:
     text = unicodedata.normalize("NFKD", text)
     text = "".join(char for char in text if not unicodedata.combining(char))
     return re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
-
-
-def is_active_offset(values: Any) -> bool:
-    """Gibt True zurück, wenn ein Modul derzeit einen Offset auf den Raum anwendet."""
-    if not isinstance(values, dict) or "raum" not in values:
-        return False
-    try:
-        return float(values["raum"]) != 0
-    except (TypeError, ValueError):
-        return False
-
-
-def parse_transmission(value: str) -> datetime | None:
-    """Wertet den Zeitstempel der letzten Übertragung eines Controme-Sensors aus."""
-    if not value:
-        return None
-    value = value.strip()
-    for timestamp_format in TRANSMISSION_FORMATS:
-        try:
-            parsed = datetime.strptime(value, timestamp_format)
-        except ValueError:
-            continue
-        # Die Controme-Anlage meldet Ortszeiten
-        return parsed.replace(tzinfo=dt_util.now().tzinfo)
-    _LOGGER.debug("Unbekanntes Format der letzten Übertragung: %s", value)
-    return None
 
 
 def is_multi_sensor(sensor: Any) -> bool:
@@ -381,7 +336,7 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
             (desc for desc in SENSOR_TYPES if desc.key == sensor_type),
             next(
                 (desc for desc in SENSOR_TYPES if desc.key == base_type),
-                SENSOR_TYPES[0],  # Fallback to temperature sensor
+                SENSOR_TYPES[0],  # Rückfall auf den Temperatursensor
             ),
         )
 
@@ -504,22 +459,18 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
                     self._attr_available = humidity is not None
                     self._humidity_source = source
                     self._multi_sensor_values = extract_multi_sensor_values(room_data)
-                elif not value or (
-                    isinstance(value, str)
-                    and not value.replace(".", "", 1).isdigit()
-                ):
-                    self._attr_native_value = None
-                    self._attr_available = False
                 else:
-                    try:
-                        self._attr_native_value = float(value) if value is not None else None
-                        if self._sensor_type == "total_offset":
-                            # Die API liefert die Offsets mit vielen Nachkommastellen
-                            self._attr_native_value = round(self._attr_native_value, 2)
-                        self._attr_available = True
-                    except (ValueError, TypeError):
+                    zahl = parse_number(value)
+                    if zahl is None:
+                        # Die Anlage liefert Platzhaltertexte statt eines Werts
                         self._attr_native_value = None
                         self._attr_available = False
+                    else:
+                        if self._sensor_type == "total_offset":
+                            # Die API liefert die Offsets mit vielen Nachkommastellen
+                            zahl = round(zahl, 2)
+                        self._attr_native_value = zahl
+                        self._attr_available = True
             else:
                 self._attr_native_value = value
                 self._attr_available = value is not None
@@ -857,13 +808,14 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
             self.coordinator, self._floor_id, self._room_id, self._room_data
         ) or {}
         values = (room_data.get("offsets") or {}).get(self._plugin) or {}
-        try:
-            # Die API liefert die Offsets mit vielen Nachkommastellen
-            self._attr_native_value = round(float(values.get("raum")), 2)
-            self._attr_available = True
-        except (TypeError, ValueError):
+        zahl = parse_number(values.get("raum"))
+        if zahl is None:
             self._attr_native_value = None
             self._attr_available = False
+        else:
+            # Die API liefert die Offsets mit vielen Nachkommastellen
+            self._attr_native_value = round(zahl, 2)
+            self._attr_available = True
         try:
             self._house_offset = round(float(values.get("haus")), 2)
         except (TypeError, ValueError):
