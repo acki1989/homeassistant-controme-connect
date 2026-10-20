@@ -16,3 +16,7 @@ venv/
 # Git
 *.orig
 *.rej
+
+# Zugangsdaten (niemals committen)
+.gh_token
+*.token
