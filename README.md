@@ -57,7 +57,7 @@ Dusche, Esstisch, …) auf den Heizungs-Entities.
 
    | Feld | Wert |
    |---|---|
-   | Repository | `https://github.com/<dein-nutzer>/homeassistant-controme-connect` |
+   | Repository | `https://github.com/acki1989/homeassistant-controme-connect` |
    | Kategorie | Integration |
 
 2. HACS die Integration **Controme Connect** suchen und *Herunterladen*.
@@ -73,7 +73,7 @@ kopieren und Home Assistant neu starten.
 <summary>Installation per Skript aus einem geklonten Repository</summary>
 
 ```bash
-git clone https://github.com/<dein-nutzer>/homeassistant-controme-connect.git
+git clone https://github.com/acki1989/homeassistant-controme-connect.git
 cd homeassistant-controme-connect
 ./install.sh          # kopiert nach /config/custom_components
 ```
@@ -131,13 +131,18 @@ Informationen zur Firmware fehlen dann.
 
 Die IDs enthalten den Raumnamen der Anlage, z. B. `Galerie` → `galerie`.
 
+Die Namen der Entities sind übersetzt: Home Assistant zeigt sie in der Sprache
+der Oberfläche an, deutsch in `translations/de.json`, englisch in
+`translations/en.json`. Die Namen der Raum-Sensoren bleiben dabei gleich –
+die Werte und die IDs ändern sich nicht.
+
 ### Je Raum
 
 | Entity-ID | Name | Inhalt |
 |---|---|---|
 | `sensor.controme_connect_<raum>_temperature` | Temperatur | Ist-Temperatur in °C |
 | `sensor.controme_connect_<raum>_target` | Zieltemperatur | Vorgesehene Solltemperatur in °C |
-| `sensor.controme_connect_<raum>_mode` | Betriebsart | `heating` / `off` |
+| `sensor.controme_connect_<raum>_mode` | Betriebsart | `Heating` / `off` (Werte der Anlage, in der Oberfläche übersetzt) |
 | `sensor.controme_connect_<raum>_return` | Rücklauftemperatur | Rücklauf des Heizkreises in °C |
 | `sensor.controme_connect_<raum>_humidity` | Luftfeuchtigkeit | relative Feuchte in % |
 | `sensor.controme_connect_<raum>_offset` | Temperaturanpassung | Summe aller Offsets in °C |
@@ -333,7 +338,7 @@ git config user.email "deine@adresse"
 gh repo create homeassistant-controme-connect --private --source=. --remote=origin --push
 # oder ohne gh:
 #   github.com → New repository → Private → dann:
-git remote add origin https://github.com/<dein-nutzer>/homeassistant-controme-connect.git
+git remote add origin https://github.com/acki1989/homeassistant-controme-connect.git
 git push -u origin main
 ```
 
@@ -345,13 +350,13 @@ ist dafür nicht nötig:
 ```
 
 Wird das Repository später **öffentlich** gestellt, ist es über HACS
-installierbar. Vorher sollte im `manifest.json` die Adresse von
-`documentation` und `issue_tracker` auf das eigene Repository zeigen.
+installierbar. Die Adressen von `documentation` und `issue_tracker` im
+`manifest.json` zeigen bereits auf dieses Repository.
 
 ## Mitwirken
 
 Fehler und Verbesserungen sind willkommen – bitte als
-[Issue](https://github.com/<dein-nutzer>/homeassistant-controme-connect/issues)
+[Issue](https://github.com/acki1989/homeassistant-controme-connect/issues)
 melden. Codeänderungen bitte als Pull Request einreichen.
 
 ```

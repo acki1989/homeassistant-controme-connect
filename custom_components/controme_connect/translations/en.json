@@ -68,26 +68,51 @@
     "entity": {
         "sensor": {
             "current": {
-                "name": "Current Temperature"
+                "name": "Temperature"
             },
             "target": {
-                "name": "Target Temperature"
+                "name": "Target temperature"
             },
             "humidity": {
                 "name": "Humidity"
             },
             "return": {
-                "name": "Return Temperature"
+                "name": "Return temperature"
+            },
+            "return_labeled": {
+                "name": "{label} Return temperature"
             },
             "total_offset": {
-                "name": "Total Offset"
+                "name": "Total offset"
             },
             "operation_mode": {
-                "name": "Operation Mode",
+                "name": "Operation mode",
                 "state": {
+                    "Heating": "Heating",
+                    "Off": "Off",
                     "heating": "Heating",
                     "off": "Off"
                 }
+            },
+            "deviation": {
+                "name": "Deviation"
+            },
+            "last_transmission": {
+                "name": "Last transmission"
+            },
+            "offset": {
+                "name": "Offset {plugin}"
+            },
+            "firmware": {
+                "name": "Firmware"
+            }
+        },
+        "binary_sensor": {
+            "firmware_update": {
+                "name": "Firmware update available"
+            },
+            "transmission_problem": {
+                "name": "Transmission problem"
             }
         },
         "climate": {

@@ -5,7 +5,7 @@ Home-Assistant-Integration für Controme-Heizungsanlagen mit Smart-Heat-OS
 
 Die vollständige Anleitung mit Installationsschritten, allen Entities,
 Dashboard-Beispielen und Problembehebung steht in der
-[README des Repositories](https://github.com/<dein-nutzer>/homeassistant-controme-connect).
+[README des Repositories](https://github.com/acki1989/homeassistant-controme-connect).
 
 ## Einrichtung
 

@@ -97,7 +97,7 @@ class ContromeFirmwareUpdateSensor(CoordinatorEntity, BinarySensorEntity):
 
         self._attr_unique_id = f"{self._house_id}_firmware_update"
         self.entity_id = "binary_sensor.controme_connect_firmware_update"
-        self._attr_name = "Firmware-Update verfügbar"
+        self._attr_translation_key = "firmware_update"
 
         self._update_from_data()
 
@@ -163,7 +163,7 @@ class ContromeTransmissionProblemSensor(CoordinatorEntity, BinarySensorEntity):
             f"binary_sensor.controme_connect_{room_slug(room_name)}"
             "_transmission_problem"
         )
-        self._attr_name = "Übertragung gestört"
+        self._attr_translation_key = "transmission_problem"
 
         self._update_from_data()
 

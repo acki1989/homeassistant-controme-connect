@@ -41,7 +41,7 @@ table, …) are applied to the climate entities.
 
    | Field | Value |
    |---|---|
-   | Repository | `https://github.com/<your-user>/homeassistant-controme-connect` |
+   | Repository | `https://github.com/acki1989/homeassistant-controme-connect` |
    | Category | Integration |
 
 2. Search for **Controme Connect** in HACS and download it.
@@ -83,13 +83,18 @@ All settings can be changed later under
 
 The IDs contain the room name of the system, e.g. `Galerie` → `galerie`.
 
+The entity names are translated: Home Assistant shows them in the language of
+the user interface, German in `translations/de.json`, English in
+`translations/en.json`. The names of the room sensors stay the same – neither
+the values nor the IDs change.
+
 ### Per room
 
 | Entity ID | Name |
 |---|---|
 | `sensor.controme_connect_<room>_temperature` | Temperature |
 | `sensor.controme_connect_<room>_target` | Target temperature |
-| `sensor.controme_connect_<room>_mode` | Operating mode |
+| `sensor.controme_connect_<room>_mode` | Operation mode (`Heating` / `off`) |
 | `sensor.controme_connect_<room>_return` | Return flow temperature |
 | `sensor.controme_connect_<room>_humidity` | Humidity |
 | `sensor.controme_connect_<room>_offset` | Temperature adjustment (sum) |

@@ -51,11 +51,20 @@ von *flame4ever*.
 - **Deutschsprachige Dokumentation** – Kommentare, Docstrings und Log-Meldungen
   der Integration sowie dieses Änderungsprotokoll sind vollständig auf Deutsch.
   Die englische README bleibt als englische Fassung erhalten.
+- **Übersetzte Entity-Namen** – die Namen aller Entities kommen jetzt aus den
+  Übersetzungsdateien statt aus dem Code. Dadurch erscheinen sie in der
+  Sprache der Home-Assistant-Oberfläche, deutsch und englisch. Namen und
+  Entity-IDs der eigenen Integration bleiben unverändert.
+- **Manifest verweist auf das eigene Repository** – `documentation` und
+  `issue_tracker` zeigen auf `github.com/acki1989/homeassistant-controme-connect`.
 - **Eigene Domain** `controme_connect` mit eigenen Entity-IDs, damit die
   Integration unabhängig von der ursprünglichen betrieben werden kann.
 
 ### Behoben
 
+- Die Betriebsart blieb englisch. Die Anlage liefert den Zustand „Heating“,
+  der Übersetzungsschlüssel hieß „heating“ und traf deshalb nie. Die Zustände
+  der Betriebsart sind jetzt übersetzt.
 - Die Ermittlung der Haus-ID erfolgte über die API, die für jede ID dieselben
   Daten liefert. Unter der so ermittelten ID existiert die Weboberfläche
   jedoch nicht. Die Ermittlung nutzt jetzt die Weboberfläche.

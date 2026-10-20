@@ -378,8 +378,11 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
         """Initialisiert die Beschreibung des Sensors anhand des Typs."""
         base_type = sensor_type.split("_")[0]
         self.entity_description = next(
-            (desc for desc in SENSOR_TYPES if desc.key == base_type),
-            SENSOR_TYPES[0]  # Fallback to temperature sensor
+            (desc for desc in SENSOR_TYPES if desc.key == sensor_type),
+            next(
+                (desc for desc in SENSOR_TYPES if desc.key == base_type),
+                SENSOR_TYPES[0],  # Fallback to temperature sensor
+            ),
         )
 
     def __init_entity_id(self, sensor_type: str, room_name: str) -> None:
@@ -397,20 +400,14 @@ class ContromeSensor(CoordinatorEntity, SensorEntity):
 
     def __init_name(self, sensor_type: str) -> None:
         """Initialisiert den Namen des Sensors."""
-        name_map = {
-            "current": "Temperatur",
-            "target": "Zieltemperatur",
-            "humidity": "Luftfeuchtigkeit",
-            "return": "Rücklauftemperatur",
-            "total_offset": "Temperaturanpassung",
-            "operation_mode": "Betriebsart"
-        }
         base_type = sensor_type.split("_")[0]
-        lookup_key = sensor_type if sensor_type == "total_offset" else base_type
-        name = name_map.get(lookup_key, sensor_type)
         if base_type == "return" and self._return_total > 1 and self._return_label:
-            name = f"{self._return_label} {name}"
-        self._attr_name = name
+            # Bei mehreren Rücklauf-Sensoren im Raum trennt das Label sie
+            self._attr_translation_key = "return_labeled"
+            self._attr_translation_placeholders = {"label": self._return_label}
+        else:
+            # Der Name kommt aus der Übersetzung der Integration
+            self._attr_translation_key = self.entity_description.translation_key
 
     def __init__(self, coordinator, config_entry, room_data, sensor_type, device_info,
                  return_label: str = "", return_slug: str = "", return_total: int = 1):
@@ -544,7 +541,7 @@ class ContromeFirmwareSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_unique_id = f"{self._house_id}_firmware"
         self.entity_id = "sensor.controme_connect_firmware"
-        self._attr_name = "Firmware"
+        self._attr_translation_key = "firmware"
 
         self._update_from_data()
 
@@ -622,7 +619,7 @@ class ContromeDeviationSensor(CoordinatorEntity, SensorEntity):
         room_name = room_data.get("name", "")
         self._attr_unique_id = f"{self._house_id}_{self._floor_id}_{self._room_id}_deviation"
         self.entity_id = f"sensor.controme_connect_{room_slug(room_name)}_deviation"
-        self._attr_name = "Abweichung"
+        self._attr_translation_key = "deviation"
 
         self._update_from_data()
 
@@ -724,7 +721,7 @@ class ContromeLastTransmissionSensor(CoordinatorEntity, SensorEntity):
             f"{self._house_id}_{self._floor_id}_{self._room_id}_last_transmission"
         )
         self.entity_id = f"sensor.controme_connect_{room_slug(room_name)}_last_transmission"
-        self._attr_name = "Letzte Übertragung"
+        self._attr_translation_key = "last_transmission"
 
         self._update_from_data()
 
@@ -827,7 +824,8 @@ class ContromeOffsetSensor(CoordinatorEntity, SensorEntity):
             f"_offset_{plugin_slug}"
         )
         self.entity_id = f"sensor.controme_connect_{room_slug(room_name)}_offset_{plugin_slug}"
-        self._attr_name = f"Temperaturanpassung {plugin}"
+        self._attr_translation_key = "offset"
+        self._attr_translation_placeholders = {"plugin": plugin}
 
         self._update_from_data()
 
@@ -904,7 +902,7 @@ class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
         )
 
         # Namen setzen
-        self._attr_name = "Betriebsart"
+        self._attr_translation_key = "operation_mode"
 
         # Anfangswert und Verfügbarkeit setzen
         self._update_from_data(room_data)

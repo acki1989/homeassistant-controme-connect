@@ -68,7 +68,7 @@
     "entity": {
         "sensor": {
             "current": {
-                "name": "Aktuelle Temperatur"
+                "name": "Temperatur"
             },
             "target": {
                 "name": "Zieltemperatur"
@@ -79,15 +79,40 @@
             "return": {
                 "name": "Rücklauftemperatur"
             },
+            "return_labeled": {
+                "name": "{label} Rücklauftemperatur"
+            },
             "total_offset": {
-                "name": "Gesamtoffset"
+                "name": "Temperaturanpassung"
             },
             "operation_mode": {
                 "name": "Betriebsart",
                 "state": {
+                    "Heating": "Heizen",
+                    "Off": "Aus",
                     "heating": "Heizen",
                     "off": "Aus"
                 }
+            },
+            "deviation": {
+                "name": "Abweichung"
+            },
+            "last_transmission": {
+                "name": "Letzte Übertragung"
+            },
+            "offset": {
+                "name": "Temperaturanpassung {plugin}"
+            },
+            "firmware": {
+                "name": "Firmware"
+            }
+        },
+        "binary_sensor": {
+            "firmware_update": {
+                "name": "Firmware-Update verfügbar"
+            },
+            "transmission_problem": {
+                "name": "Übertragung gestört"
             }
         },
         "climate": {

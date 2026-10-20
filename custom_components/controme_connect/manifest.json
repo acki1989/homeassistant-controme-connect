@@ -3,11 +3,13 @@
   "name": "Controme Connect",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/flame4ever/homeassistant-controme-integration",
+  "documentation": "https://github.com/acki1989/homeassistant-controme-connect",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/flame4ever/homeassistant-controme-integration/issues",
-  "loggers": ["aioeeve_controme"],
+  "issue_tracker": "https://github.com/acki1989/homeassistant-controme-connect/issues",
+  "loggers": [
+    "aioeeve_controme"
+  ],
   "requirements": [],
   "version": "1.0.0"
 }
