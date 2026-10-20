@@ -1,0 +1,113 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Controme Verbindung",
+                "description": "Wie soll die Controme-Anlage gefunden werden?",
+                "data": {
+                    "discovery_method": "Ermittlung"
+                }
+            },
+            "auto_discovery": {
+                "title": "Controme Verbindung",
+                "description": "Das Netzwerk wird nach Controme-Systemen durchsucht."
+            },
+            "credentials": {
+                "title": "Zugangsdaten",
+                "description": "Bitte die Zugangsdaten für {system} eingeben.",
+                "data": {
+                    "user": "Benutzername",
+                    "password": "Passwort"
+                }
+            },
+            "manual_entry": {
+                "title": "Controme Verbindung",
+                "description": "Bitte die Verbindungsdaten der Anlage eingeben.",
+                "data": {
+                    "api_url": "API URL",
+                    "user": "Benutzername",
+                    "password": "Passwort"
+                }
+            },
+            "select_system": {
+                "title": "Controme System auswählen",
+                "description": "{count} Systeme gefunden. Bitte eines auswählen.",
+                "data": {
+                    "api_url": "API URL",
+                    "user": "Benutzername",
+                    "password": "Passwort"
+                }
+            },
+            "select_house": {
+                "title": "Haus auswählen",
+                "description": "Die Anlage liefert Daten für mehrere Häuser. Bitte das passende Haus auswählen.",
+                "data": {
+                    "haus_id": "Haus"
+                }
+            },
+            "reconfigure": {
+                "title": "Controme Einstellungen ändern",
+                "description": "Die Änderungen werden nach dem Speichern übernommen.",
+                "data": {
+                    "api_url": "API URL",
+                    "haus_id": "Haus-ID",
+                    "user": "Benutzername",
+                    "password": "Passwort"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Die Controme-Anlage ist nicht erreichbar",
+            "invalid_auth": "Benutzername oder Passwort ist ungültig (geprüft an der Weboberfläche)",
+            "unknown": "Unerwarteter Fehler"
+        },
+        "abort": {
+            "already_configured": "Gerät ist bereits konfiguriert"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "current": {
+                "name": "Aktuelle Temperatur"
+            },
+            "target": {
+                "name": "Zieltemperatur"
+            },
+            "humidity": {
+                "name": "Luftfeuchtigkeit"
+            },
+            "return": {
+                "name": "Rücklauftemperatur"
+            },
+            "total_offset": {
+                "name": "Gesamtoffset"
+            },
+            "operation_mode": {
+                "name": "Betriebsart",
+                "state": {
+                    "heating": "Heizen",
+                    "off": "Aus"
+                }
+            }
+        },
+        "climate": {
+            "controme": {
+                "name": "Heizung",
+                "state_attributes": {
+                    "preset_mode": {
+                        "name": "Voreinstellung",
+                        "state": {
+                            "heating": "Heizen",
+                            "eco": "Eco",
+                            "comfort": "Komfort"
+                        }
+                    }
+                },
+                "state": {
+                    "heat": "Heizen",
+                    "off": "Aus"
+                }
+            }
+        }
+    }
+}
