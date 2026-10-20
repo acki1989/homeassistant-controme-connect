@@ -127,6 +127,20 @@ The IDs contain the room name of the system, e.g. `Galerie` → `galerie`.
   never block the room sensors. The beta version is reported separately and
   never triggers an update hint.
 
+## Trademarks and logos
+
+**Controme** and **Smart-Heat-OS** are trademarks of Controme GmbH. This
+integration is not affiliated with, endorsed by or supported by Controme.
+The Controme logo is not used in this repository; the product is only named
+to describe the compatibility.
+
+**Home Assistant** and the Home Assistant logo are trademarks of the Open
+Home Foundation. They appear here only to indicate compatibility, not to
+suggest an official partnership.
+
+The icon and logo of this integration (`brand/icon.png`, `brand/logo.png`)
+are self-made graphics, created with `tools/create_brand_images.py`.
+
 ## License
 
 MIT – see [LICENSE](LICENSE).

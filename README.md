@@ -1,5 +1,7 @@
 # Controme Connect
 
+<img src="custom_components/controme_connect/brand/icon.png" alt="Controme Connect" width="96" align="right">
+
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -374,6 +376,22 @@ vollständig im lokalen Netz.
   [homeassistant-controme-integration](https://github.com/flame4ever/homeassistant-controme-integration)
 - **Controme** für die dokumentierte
   [Smart-Heat-OS-API](https://support.controme.com/api/)
+
+## Marken und Logos
+
+**Controme**, **Smart-Heat-OS** und das Controme-Logo sind Marken der
+Controme GmbH. Diese Integration steht in keiner Verbindung zu Controme und
+wird von Controme weder unterstützt noch empfohlen. Das Logo wird im
+README nicht verwendet; benannt wird ausschließlich das Produkt, um die
+Kompatibilität zu beschreiben.
+
+**Home Assistant** und das Home-Assistant-Logo sind Marken der Open Home
+Foundation. Sie erscheinen hier nur, um die Kompatibilität anzuzeigen –
+eine offizielle Partnerschaft oder Empfehlung ist damit nicht verbunden.
+
+Das Icon und das Logo dieser Integration (`brand/icon.png`,
+`brand/logo.png`) sind eigene Grafiken, erzeugt mit
+`tools/create_brand_images.py`.
 
 ## Lizenz
 
