@@ -108,13 +108,22 @@ Alle Angaben lassen sich später unter
 
 ### Haus-ID
 
-Die Anlage bietet keine Liste ihrer Häuser. Beim Einrichten werden deshalb die
-IDs 1 bis 10 abgefragt und unterschiedliche Antworten als Häuser angeboten.
-Liefert die Anlage für alle IDs dieselben Daten, gibt es nur ein Haus und die
-Auswahl entfällt.
+Die Daten-Endpunkte der API antworten für **jede** Haus-ID mit denselben
+Räumen – sie taugen also nicht zur Unterscheidung. Die Weboberfläche ist
+dagegen an ein Haus gebunden: Sie existiert nur unter der ID, die wirklich
+eingerichtet ist. Beim Einrichten werden deshalb die IDs 1 bis 10 über die
+Weboberfläche geprüft und die gültigen als Auswahl angeboten. Lässt sich die
+Anlage nicht ermitteln, kann die ID von Hand eingetragen werden.
 
 Die Haus-ID steht in den Attributen aller Entities (`house_id`) und im Namen des
-Hub-Geräts (`Controme Home <Haus-ID>`).
+Hub-Geräts (`Controme Home <Haus-ID>`). Stimmt sie nicht, meldet die
+Firmware-Entity das im Log – die Raumsensoren funktionieren auch dann, nur die
+Informationen zur Firmware fehlen dann.
+
+> **Wichtig:** Die Weboberfläche lässt nur **eine** Anmeldung gleichzeitig zu.
+> Betreibt man beide Integrationen parallel, kann sich die zweite Anmeldung
+> gegenseitig aufheben und die Firmware-Informationen fehlen. Für den
+> Regelbetrieb eine der beiden Integrationen verwenden.
 
 ## Entities
 

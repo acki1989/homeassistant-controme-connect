@@ -45,6 +45,15 @@ von *flame4ever*.
 - **Eigene Domain** `controme_connect` mit eigenen Entity-IDs, damit die
   Integration unabhängig von der ursprünglichen betrieben werden kann.
 
+### Behoben
+
+- Die Ermittlung der Haus-ID erfolgte über die API, die für jede ID dieselben
+  Daten liefert. Unter der so ermittelten ID existiert die Weboberfläche
+  jedoch nicht. Die Ermittlung nutzt jetzt die Weboberfläche.
+- Der Hinweis auf ein verfügbares Update wertete nur den HTTP-Status aus. Die
+  Fehlerseite der Weboberfläche wird mit Status 200 beantwortet und wurde
+  deshalb als Update gemeldet. Jetzt wird zusätzlich der Inhalt geprüft.
+
 ### Geändert
 
 - Die Raum-IDs werden ohne doppelte Unterstriche und ohne Umlaute erzeugt.
