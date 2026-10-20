@@ -94,7 +94,7 @@ the values nor the IDs change.
 |---|---|
 | `sensor.controme_connect_<room>_temperature` | Temperature |
 | `sensor.controme_connect_<room>_target` | Target temperature |
-| `sensor.controme_connect_<room>_mode` | Operation mode (`Heating` / `off`) |
+| `sensor.controme_connect_<room>_mode` | Operation mode (`heating` / `off`) |
 | `sensor.controme_connect_<room>_return` | Return flow temperature |
 | `sensor.controme_connect_<room>_humidity` | Humidity |
 | `sensor.controme_connect_<room>_offset` | Temperature adjustment (sum) |

@@ -7,6 +7,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, CONF_API_URL, CONF_HAUS_ID, CONF_USER, CONF_PASSWORD
@@ -367,11 +368,16 @@ class ContromeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @callback
     def _async_remove_old_entities(self, entry: config_entries.ConfigEntry) -> None:
-        """Entfernt die Entities der Integration aus dem Registry."""
+        """Entfernt die Entities und Geräte der Integration aus dem Registry."""
         registry = er.async_get(self.hass)
         for reg_entry in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
             _LOGGER.info("Entity %s des vorherigen Hauses wird entfernt", reg_entry.entity_id)
             registry.async_remove(reg_entry.entity_id)
+        # Ohne die Geräte bleiben die Waisen des vorherigen Hauses stehen
+        device_registry = dr.async_get(self.hass)
+        for device in list(dr.async_entries_for_config_entry(device_registry, entry.entry_id)):
+            _LOGGER.info("Gerät %s des vorherigen Hauses wird entfernt", device.name)
+            device_registry.async_remove_device(device.id)
 
     # Home Assistant mitteilen, wie der Fortschrittsschritt zu behandeln ist
     @staticmethod

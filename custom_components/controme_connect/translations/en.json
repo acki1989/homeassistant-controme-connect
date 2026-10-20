@@ -88,8 +88,6 @@
             "operation_mode": {
                 "name": "Operation mode",
                 "state": {
-                    "Heating": "Heating",
-                    "Off": "Off",
                     "heating": "Heating",
                     "off": "Off"
                 }

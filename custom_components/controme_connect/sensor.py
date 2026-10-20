@@ -931,5 +931,9 @@ class ContromeOperationModeSensor(CoordinatorEntity, SensorEntity):
     def _update_from_data(self, room_data):
         """Aktualisiert den Zustand des Sensors aus den Raumdaten."""
         value = room_data.get(VALUE_MAP["operation_mode"])
+        if isinstance(value, str):
+            # Die Anlage liefert "Heating" mit großem H. Die Schlüssel der
+            # Zustandsübersetzungen müssen klein geschrieben sein.
+            value = value.lower()
         self._attr_native_value = value
         self._attr_available = value is not None

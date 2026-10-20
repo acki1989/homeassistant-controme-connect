@@ -64,7 +64,10 @@ von *flame4ever*.
 
 - Die Betriebsart blieb englisch. Die Anlage liefert den Zustand „Heating“,
   der Übersetzungsschlüssel hieß „heating“ und traf deshalb nie. Die Zustände
-  der Betriebsart sind jetzt übersetzt.
+  der Betriebsart sind jetzt übersetzt und werden klein geschrieben.
+- Nach einem Wechsel der Haus-ID blieben die Geräte des vorherigen Hauses als
+  Waisen im Registry stehen. Sie werden jetzt beim Neu konfigurieren mit
+  entfernt.
 - Die Ermittlung der Haus-ID erfolgte über die API, die für jede ID dieselben
   Daten liefert. Unter der so ermittelten ID existiert die Weboberfläche
   jedoch nicht. Die Ermittlung nutzt jetzt die Weboberfläche.

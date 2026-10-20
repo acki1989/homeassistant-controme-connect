@@ -142,7 +142,7 @@ die Werte und die IDs ändern sich nicht.
 |---|---|---|
 | `sensor.controme_connect_<raum>_temperature` | Temperatur | Ist-Temperatur in °C |
 | `sensor.controme_connect_<raum>_target` | Zieltemperatur | Vorgesehene Solltemperatur in °C |
-| `sensor.controme_connect_<raum>_mode` | Betriebsart | `Heating` / `off` (Werte der Anlage, in der Oberfläche übersetzt) |
+| `sensor.controme_connect_<raum>_mode` | Betriebsart | `heating` / `off` (Werte der Anlage in Kleinbuchstaben, in der Oberfläche übersetzt) |
 | `sensor.controme_connect_<raum>_return` | Rücklauftemperatur | Rücklauf des Heizkreises in °C |
 | `sensor.controme_connect_<raum>_humidity` | Luftfeuchtigkeit | relative Feuchte in % |
 | `sensor.controme_connect_<raum>_offset` | Temperaturanpassung | Summe aller Offsets in °C |
