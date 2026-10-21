@@ -3,7 +3,7 @@
 <img src="custom_components/controme_connect/brand/icon.png" alt="Controme Connect" width="96" align="right">
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-blue.svg)](https://www.home-assistant.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Home Assistant integration for **Controme heating systems running Smart-Heat-OS**
@@ -38,6 +38,15 @@ firmware state of the system – and warns when a sensor stops reporting.
 - [License](#license)
 
 ---
+
+## Prerequisites
+
+| | |
+|---|---|
+| **Home Assistant** | 2024.11 or newer – the *Reconfigure* flow was introduced with that release |
+| **System** | Controme heating system running Smart-Heat-OS (mini server) |
+| **Network** | The mini server must be reachable and the login to its web interface must succeed |
+| **Python dependencies** | none – the integration only uses the libraries shipped with Home Assistant |
 
 ## Features
 
@@ -190,6 +199,10 @@ therefore only gets an entity when it really affects the room. If it becomes
 active later (for example the weather correction in winter), the integration
 reloads itself and the entity appears.
 
+The names of the modules come unchanged from the system (e.g. "Wetter" or
+"Heizflächenoptimierung") and are not translated. They are also available in
+the `plugin` attribute.
+
 ### Different timeouts for the transmission
 
 The sensors report at different intervals:
@@ -323,34 +336,41 @@ check keeps running in the background, unaffected by this.
 
 ## Publishing
 
-The repository is published **privately** first, so that the integration can be
-tested in your own system.
+The repository is hosted on GitHub under
+[acki1989/homeassistant-controme-connect](https://github.com/acki1989/homeassistant-controme-connect)
+and can be installed via HACS.
+
+### Installation via HACS
+
+1. In HACS add *Settings → Custom repositories*:
+
+   | Field | Value |
+   |---|---|
+   | Repository | `https://github.com/acki1989/homeassistant-controme-connect` |
+   | Category | Integration |
+
+2. Search for **Controme Connect** and download it.
+3. Restart Home Assistant.
+
+### Installation without HACS
+
+```bash
+git clone https://github.com/acki1989/homeassistant-controme-connect.git
+cd homeassistant-controme-connect
+./install.sh          # copies to /config/custom_components
+```
+
+Restart Home Assistant afterwards.
+
+### Working on it yourself
 
 ```bash
 cd /config/homeassistant-controme-connect
-
-# Set the identity for the commits
-git config user.name "Your name"
-git config user.email "your@address"
-
-# Create the private repository and push
-gh repo create homeassistant-controme-connect --private --source=. --remote=origin --push
-# or without gh:
-#   github.com → New repository → Private → then:
-git remote add origin https://github.com/acki1989/homeassistant-controme-connect.git
-git push -u origin main
+git pull              # take over the changes of the repository
 ```
 
-To test it in your own system the manual installation is enough – a GitHub
-account is not required for that:
-
-```bash
-./install.sh && # restart Home Assistant
-```
-
-Once the repository is made **public** later, it can be installed via HACS.
-The addresses of `documentation` and `issue_tracker` in the `manifest.json`
-already point to this repository.
+Every push triggers the GitHub Actions check *Validate* (hassfest), which
+reports problems in the manifest, the translations or the code.
 
 ## Contributing
 

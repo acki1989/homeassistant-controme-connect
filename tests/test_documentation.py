@@ -14,6 +14,7 @@ README_EN = REPO / "README.en.md"
 
 # Die Abschnitte der deutschen README und ihre englische Entsprechung
 ABSCHNITTE = {
+    "Voraussetzungen": "Prerequisites",
     "Funktionen": "Features",
     "Installation": "Installation",
     "Einrichtung": "Setup",

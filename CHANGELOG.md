@@ -56,7 +56,17 @@ von *flame4ever*.
   Sprache der Home-Assistant-Oberfläche, deutsch und englisch. Namen und
   Entity-IDs der eigenen Integration bleiben unverändert.
 - **Manifest verweist auf das eigene Repository** – `documentation` und
-  `issue_tracker` zeigen auf `github.com/acki1989/homeassistant-controme-connect`.
+  `issue_tracker` zeigen auf `github.com/acki1989/homeassistant-controme-connect`,
+  `codeowners` nennt `@acki1989`.
+- **Übersetzte Entity-Namen** – die Namen aller Entities kommen jetzt aus den
+  Übersetzungsdateien statt aus dem Code. Dadurch erscheinen sie in der
+  Sprache der Home-Assistant-Oberfläche, auf Deutsch wie auf Englisch. Zuvor
+  wurden die Einträge in den Übersetzungsdateien nicht verwendet, weil der im
+  Code gesetzte Name Vorrang hatte.
+- **Voraussetzungen** in beiden README-Fassungen: Home Assistant 2024.11 oder
+  neuer, Controme-Anlage mit Smart-Heat-OS, keine Python-Abhängigkeiten.
+- **Hinweis auf die Modulnamen** – sie kommen unverändert aus der Anlage und
+  werden nicht übersetzt.
 - **Unit-Tests** für die reinen Hilfsfunktionen unter `tests/` (88 Tests):
   Raum-Slugs, Raum-Icons, Erkennung der Rücklauf-Sensoren, Offsets,
   Umwandlung der API-Werte, Zeitstempel der letzten Übertragung, die

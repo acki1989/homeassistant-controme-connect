@@ -3,7 +3,7 @@
 <img src="custom_components/controme_connect/brand/icon.png" alt="Controme Connect" width="96" align="right">
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-blue.svg)](https://www.home-assistant.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Home-Assistant-Integration für **Controme-Heizungsanlagen mit Smart-Heat-OS** (Mini-Server).
@@ -35,6 +35,15 @@ Anlage – und warnt, wenn ein Sensor nicht mehr sendet.
 - [Danksagung](#danksagung)
 
 ---
+
+## Voraussetzungen
+
+| | |
+|---|---|
+| **Home Assistant** | 2024.11 oder neuer – der Ablauf *Neu konfigurieren* wurde mit dieser Version eingeführt |
+| **Anlage** | Controme-Heizungsanlage mit Smart-Heat-OS (Mini-Server) |
+| **Netzwerk** | Der Mini-Server muss erreichbar sein und die Anmeldung an seiner Weboberfläche muss klappen |
+| **Python-Abhängigkeiten** | keine – die Integration nutzt nur die Bibliotheken von Home Assistant |
 
 ## Funktionen
 
@@ -104,7 +113,7 @@ Alle Angaben lassen sich später unter
 | Option | Bedeutung |
 |---|---|
 | **API-Adresse** | Adresse des Mini-Servers, z. B. `192.168.178.79`. Schema und abschließender Slash sind optional. |
-| **Haus-ID** | Nummer des Hauses in der Anlage, meist `1`. |
+| **Haus-ID** | Nummer des Hauses in der Anlage, meist `2`. |
 | **Benutzer** | Benutzer der Controme-Weboberfläche |
 | **Passwort** | Passwort der Controme-Weboberfläche |
 
@@ -189,6 +198,10 @@ zuschwallen. Deshalb bekommt ein Modul **nur dann** eine Entity, wenn es den
 Raum tatsächlich beeinflusst. Wird ein Modul später aktiv (etwa die
 Wetterkorrektur im Winter), lädt sich die Integration selbst neu und die Entity
 erscheint.
+
+Die Namen der Module kommen unverändert aus der Anlage (z. B. „Wetter" oder
+„Heizflächenoptimierung") und werden nicht übersetzt. Sie stehen auch im
+Attribut `plugin`.
 
 ### Unterschiedliche Zeitlimits für die Übertragung
 
@@ -324,34 +337,41 @@ Firmware-Check läuft davon unbeeinflusst im Hintergrund.
 
 ## Veröffentlichung
 
-Das Repository wird zunächst **privat** veröffentlicht, damit die Integration
-zuerst im eigenen System getestet werden kann.
+Das Repository liegt auf GitHub unter
+[acki1989/homeassistant-controme-connect](https://github.com/acki1989/homeassistant-controme-connect)
+und ist über HACS installierbar.
+
+### Installation über HACS
+
+1. In HACS *Einstellungen → Benutzerdefiniertes Repository* hinzufügen:
+
+   | Feld | Wert |
+   |---|---|
+   | Repository | `https://github.com/acki1989/homeassistant-controme-connect` |
+   | Kategorie | Integration |
+
+2. **Controme Connect** suchen und herunterladen.
+3. Home Assistant neu starten.
+
+### Installation ohne HACS
+
+```bash
+git clone https://github.com/acki1989/homeassistant-controme-connect.git
+cd homeassistant-controme-connect
+./install.sh          # kopiert nach /config/custom_components
+```
+
+Danach Home Assistant neu starten.
+
+### Eigene Weiterentwicklung
 
 ```bash
 cd /config/homeassistant-controme-connect
-
-# Identität für die Commits setzen
-git config user.name "Dein Name"
-git config user.email "deine@adresse"
-
-# Privates Repository anlegen und pushen
-gh repo create homeassistant-controme-connect --private --source=. --remote=origin --push
-# oder ohne gh:
-#   github.com → New repository → Private → dann:
-git remote add origin https://github.com/acki1989/homeassistant-controme-connect.git
-git push -u origin main
+git pull              # Änderungen aus dem Repository übernehmen
 ```
 
-Zum Testen im eigenen System genügt die manuelle Installation – ein GitHub-Konto
-ist dafür nicht nötig:
-
-```bash
-./install.sh && # Home Assistant neu starten
-```
-
-Wird das Repository später **öffentlich** gestellt, ist es über HACS
-installierbar. Die Adressen von `documentation` und `issue_tracker` im
-`manifest.json` zeigen bereits auf dieses Repository.
+Bei jedem Push läuft die GitHub-Actions-Prüfung *Validate* (hassfest) und
+meldet Fehler im Manifest, in den Übersetzungen oder im Code.
 
 ## Mitwirken
 
