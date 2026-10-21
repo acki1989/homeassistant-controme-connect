@@ -64,7 +64,9 @@ UPDATE_SECTION_PATTERNS = {
     ),
 }
 
-REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=10)
+# Die Weboberfläche antwortet normalerweise schnell, rechnet aber manchmal
+# länger. Das Zeitlimit ist deshalb großzügiger als bei der Daten-API.
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=20)
 
 
 def parse_version(value: str) -> datetime | None:

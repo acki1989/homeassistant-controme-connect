@@ -14,7 +14,12 @@ from .const import DOMAIN, UPDATE_CHECK_INTERVAL
 from .firmware import async_detect_houses, async_fetch_latest_version
 
 _LOGGER = logging.getLogger(__name__)
-REQUEST_TIMEOUT = ClientTimeout(total=10)
+
+# Der Mini-Server antwortet normalerweise in einer halben Sekunde. Manchmal
+# arbeitet er aber (Weboberfläche, Optimierung der Heizkreise) und braucht
+# deutlich länger. Mit zehn Sekunden gingen die Werte der Anlage dabei
+# verloren, deshalb ist das Zeitlimit großzügiger.
+REQUEST_TIMEOUT = ClientTimeout(total=20)
 
 class ContromeDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
     """Klasse zum Abrufen der Controme-Daten."""
